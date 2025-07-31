@@ -411,6 +411,59 @@
             }
         };
 
+        // Florida District Courts of Appeal Configuration
+        const FLORIDA_DCA_CONFIG = {
+            courts: {
+                '1st_dca': {
+                    name: '1st District Court of Appeal',
+                    searchUrl: 'https://www.1dca.org/opinions_orders_search',
+                    jurisdiction: 'Tallahassee',
+                    circuit: '1st'
+                },
+                '2nd_dca': {
+                    name: '2nd District Court of Appeal', 
+                    searchUrl: 'https://www.2dca.org/opinions_orders_search',
+                    jurisdiction: 'Lakeland',
+                    circuit: '2nd'
+                },
+                '3rd_dca': {
+                    name: '3rd District Court of Appeal',
+                    searchUrl: 'https://www.3dca.flcourts.org/opinions_orders_search', 
+                    jurisdiction: 'Miami',
+                    circuit: '3rd'
+                },
+                '4th_dca': {
+                    name: '4th District Court of Appeal',
+                    searchUrl: 'https://www.4dca.org/opinions_orders_search',
+                    jurisdiction: 'West Palm Beach', 
+                    circuit: '4th'
+                },
+                '5th_dca': {
+                    name: '5th District Court of Appeal',
+                    searchUrl: 'https://www.5dca.org/opinions_orders_search',
+                    jurisdiction: 'Daytona Beach',
+                    circuit: '5th'
+                },
+                '6th_dca': {
+                    name: '6th District Court of Appeal',
+                    searchUrl: 'https://www.6dca.org/opinions_orders_search',
+                    jurisdiction: 'Lakeland',
+                    circuit: '6th'
+                }
+            },
+            searchParams: {
+                // Common search parameters for DCA opinion searches
+                dateRange: 'last_5_years',
+                caseType: 'criminal',
+                searchType: 'text'
+            },
+            rateLimit: {
+                maxRequests: 50, // Lower rate limit for direct court website scraping
+                timeWindow: 3600000,
+                delayBetweenRequests: 2000 // 2 second delay between requests
+            }
+        };
+
         // API Rate Limiting Helper
         class RateLimiter {
             constructor(maxRequests, timeWindow) {
@@ -489,38 +542,53 @@
 
             // Search for cases related to a specific criminal procedure rule
             async searchCasesForRule(ruleNumber, ruleTitle) {
-                const searchTerms = [
-                    `"Florida Rule of Criminal Procedure ${ruleNumber}"`,
-                    `"Fla. R. Crim. P. ${ruleNumber}"`,
-                    `"Rule ${ruleNumber}"`,
-                    ruleTitle
-                ];
-
                 try {
-                    const promises = searchTerms.map(term => 
-                        this.makeRequest('/search/', {
-                            q: `${term} AND court_id:fl*`, // Search Florida courts
-                            type: 'o', // Opinions
-                            order_by: 'dateFiled desc',
-                            status: 'precedential'
-                        })
-                    );
+                    // Try multiple search approaches to find relevant cases
+                    const searchTerms = [
+                        `Florida Rule Criminal Procedure ${ruleNumber}`,
+                        `Fla R Crim P ${ruleNumber}`,
+                        `Rule ${ruleNumber} criminal procedure`
+                    ];
 
-                    const results = await Promise.all(promises);
-                    
-                    // Combine and deduplicate results
-                    const allCases = new Map();
-                    results.forEach(result => {
-                        if (result.results) {
-                            result.results.forEach(case_ => {
-                                allCases.set(case_.id, case_);
+                    let allResults = [];
+
+                    for (const searchTerm of searchTerms) {
+                        try {
+                            const result = await this.makeRequest('/opinions/', {
+                                q: searchTerm,
+                                court__jurisdiction: 'FL', // Florida jurisdiction filter
+                                ordering: '-cluster__date_filed',
+                                status: 'Published',
+                                page_size: 10
+                            });
+
+                            if (result && result.results) {
+                                allResults = allResults.concat(result.results);
+                            }
+                        } catch (searchError) {
+                            console.warn(`Search failed for term "${searchTerm}":`, searchError);
+                        }
+                    }
+
+                    // Deduplicate by ID and format results
+                    const uniqueCases = new Map();
+                    allResults.forEach(opinion => {
+                        if (!uniqueCases.has(opinion.id)) {
+                            uniqueCases.set(opinion.id, {
+                                id: opinion.id,
+                                caseName: opinion.case_name || opinion.cluster?.case_name || 'Unknown Case',
+                                court: opinion.cluster?.court || 'Unknown Court',
+                                dateFiled: opinion.cluster?.date_filed,
+                                absolute_url: opinion.absolute_url,
+                                download_url: opinion.download_url,
+                                snippet: opinion.plain_text ? opinion.plain_text.substring(0, 300) + '...' : null
                             });
                         }
                     });
 
-                    return Array.from(allCases.values())
+                    return Array.from(uniqueCases.values())
                         .sort((a, b) => new Date(b.dateFiled) - new Date(a.dateFiled))
-                        .slice(0, 10); // Return top 10 most recent cases
+                        .slice(0, 10);
 
                 } catch (error) {
                     console.error(`Error searching cases for Rule ${ruleNumber}:`, error);
@@ -542,6 +610,78 @@
         }
 
         const courtListenerAPI = new CourtListenerAPI(COURTLISTENER_CONFIG);
+
+        // Florida DCA Search API Class
+        class FloridaDCASearch {
+            constructor(config) {
+                this.config = config;
+                this.rateLimiter = new RateLimiter(
+                    config.rateLimit.maxRequests,
+                    config.rateLimit.timeWindow
+                );
+                this.cache = new Map();
+                this.lastRequestTime = 0;
+            }
+
+            async delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            // Generate search URLs for each DCA court
+            generateSearchUrl(courtId, searchTerm, ruleNumber = null) {
+                const court = this.config.courts[courtId];
+                if (!court) {
+                    throw new Error(`Unknown court ID: ${courtId}`);
+                }
+
+                // Construct search query focusing on criminal procedure rules
+                let query = searchTerm;
+                if (ruleNumber) {
+                    query = `"Rule ${ruleNumber}" OR "Fla.R.Crim.P. ${ruleNumber}" OR "${searchTerm}"`;
+                }
+
+                // Since we can't directly POST to DCA search forms from client-side,
+                // we'll generate direct search URLs that open in new tabs
+                const searchUrl = new URL(court.searchUrl);
+                
+                return {
+                    courtName: court.name,
+                    searchUrl: searchUrl.toString(),
+                    query: query,
+                    directSearchLink: `${court.searchUrl}?search=${encodeURIComponent(query)}&type=opinions&criminal=1`
+                };
+            }
+
+            // Get search information for all DCA courts
+            async getAllDCASearches(ruleNumber, ruleTitle) {
+                const searches = [];
+                
+                for (const [courtId, courtData] of Object.entries(this.config.courts)) {
+                    try {
+                        const searchInfo = this.generateSearchUrl(courtId, ruleTitle, ruleNumber);
+                        searches.push(searchInfo);
+                    } catch (error) {
+                        console.warn(`Error generating search for ${courtId}:`, error);
+                    }
+                }
+
+                return searches;
+            }
+
+            // Create cached search results display
+            getCachedResults(ruleNumber) {
+                return this.cache.get(`dca_search_${ruleNumber}`) || null;
+            }
+
+            setCachedResults(ruleNumber, results) {
+                this.cache.set(`dca_search_${ruleNumber}`, {
+                    results,
+                    timestamp: Date.now()
+                });
+            }
+        }
+
+        const floridaDCASearch = new FloridaDCASearch(FLORIDA_DCA_CONFIG);
 
         // API Token Management Functions
         function loadSavedApiToken() {
@@ -593,8 +733,8 @@
             showApiStatus('🔄 Testing API connection...', 'info');
             
             try {
-                // Test the connection by making a simple API call
-                const response = await fetch(`${COURTLISTENER_CONFIG.baseUrl}/courts/?jurisdiction=FL`, {
+                // Test the connection by making a simple API call to the courts endpoint
+                const response = await fetch(`${COURTLISTENER_CONFIG.baseUrl}/courts/?jurisdiction=FL&page_size=5`, {
                     headers: {
                         'Authorization': `Token ${token}`,
                         'Content-Type': 'application/json'
@@ -1308,7 +1448,52 @@
             return `${case_.caseName || 'Unknown Case'}, ${court} (${date})`;
         }
 
-        function renderCaseLawSection(cases, ruleNum) {
+        function renderCaseLawSection(cases, ruleNum, dcaSearches = null) {
+            const rule = rules[ruleNum];
+            const ruleTitle = rule ? rule.title : '';
+
+            // DCA Search Section
+            const dcaSection = dcaSearches ? `
+                <div style="margin-bottom: 2rem;">
+                    <h4 style="color: #0068c9; margin-bottom: 1rem; display: flex; align-items: center;">
+                        <span>🏛️ Florida District Courts of Appeal</span>
+                    </h4>
+                    <div style="background: #e3f2fd; padding: 1rem; border-radius: 6px; margin-bottom: 1rem;">
+                        <p style="color: #1565c0; font-size: 0.9rem; margin: 0 0 0.5rem 0;">
+                            <strong>Direct Court Searches:</strong> Click below to search each DCA's opinion database directly for cases interpreting this rule.
+                        </p>
+                        <p style="color: #666; font-size: 0.8rem; margin: 0;">
+                            These links open each court's official search page with pre-filled search terms for Rule ${ruleNum}.
+                        </p>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+                        ${dcaSearches.map(search => {
+                            const courtKey = Object.keys(FLORIDA_DCA_CONFIG.courts).find(k => 
+                                FLORIDA_DCA_CONFIG.courts[k].name === search.courtName
+                            );
+                            const jurisdiction = courtKey ? FLORIDA_DCA_CONFIG.courts[courtKey].jurisdiction : '';
+                            
+                            return `
+                                <div style="border: 1px solid #90caf9; background: white; border-radius: 6px; padding: 1rem;">
+                                    <h5 style="margin: 0 0 0.5rem 0; color: #1565c0; font-size: 0.9rem;">
+                                        ${search.courtName}
+                                    </h5>
+                                    <p style="margin: 0 0 1rem 0; font-size: 0.8rem; color: #666;">
+                                        ${jurisdiction}
+                                    </p>
+                                    <a href="${search.directSearchLink}" target="_blank" 
+                                       style="display: inline-block; background: #1976d2; color: white; padding: 0.5rem 1rem; 
+                                              text-decoration: none; border-radius: 4px; font-size: 0.8rem; 
+                                              transition: background-color 0.2s;">
+                                        🔍 Search This Court
+                                    </a>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            ` : '';
+
             if (!cases || cases.length === 0) {
                 return `
                     <div id="case-law-section" style="margin-top: 3rem;">
@@ -1316,11 +1501,17 @@
                             <span>⚖️ Related Case Law</span>
                             <button id="refresh-cases" onclick="loadCaseLaw('${ruleNum}')" style="margin-left: 1rem; background: #f0f2f6; border: none; padding: 0.25rem 0.5rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">🔄 Refresh</button>
                         </h3>
-                        <div style="padding: 1rem; background: #f8f9fa; border-radius: 6px; color: #666; text-align: center;">
-                            <p>No related cases found or API token not configured.</p>
-                            <p style="font-size: 0.9rem; margin-top: 0.5rem;">
-                                <a href="https://www.courtlistener.com/help/api/" target="_blank" style="color: #0068c9;">Get a CourtListener API token</a> to see related Florida state court cases.
-                            </p>
+                        
+                        ${dcaSection}
+                        
+                        <div>
+                            <h4 style="color: #0068c9; margin-bottom: 1rem;">📚 CourtListener Case Database</h4>
+                            <div style="padding: 1rem; background: #f8f9fa; border-radius: 6px; color: #666; text-align: center;">
+                                <p>No related cases found or API token not configured.</p>
+                                <p style="font-size: 0.9rem; margin-top: 0.5rem;">
+                                    <a href="https://www.courtlistener.com/help/api/" target="_blank" style="color: #0068c9;">Get a CourtListener API token</a> to see related Florida state court cases.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -1348,13 +1539,19 @@
                         <span>⚖️ Related Case Law (${cases.length} cases)</span>
                         <button id="refresh-cases" onclick="loadCaseLaw('${ruleNum}')" style="margin-left: 1rem; background: #f0f2f6; border: none; padding: 0.25rem 0.5rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">🔄 Refresh</button>
                     </h3>
-                    <div style="background: #f8f9fa; padding: 1rem; border-radius: 6px; margin-bottom: 1rem;">
-                        <p style="color: #666; font-size: 0.9rem; margin: 0;">
-                            Cases from Florida state courts that interpret or reference this rule. Data provided by 
-                            <a href="https://www.courtlistener.com/" target="_blank" style="color: #0068c9;">CourtListener</a>.
-                        </p>
+                    
+                    ${dcaSection}
+                    
+                    <div>
+                        <h4 style="color: #0068c9; margin-bottom: 1rem;">📚 CourtListener Case Database</h4>
+                        <div style="background: #f8f9fa; padding: 1rem; border-radius: 6px; margin-bottom: 1rem;">
+                            <p style="color: #666; font-size: 0.9rem; margin: 0;">
+                                Cases from Florida state courts that interpret or reference this rule. Data provided by 
+                                <a href="https://www.courtlistener.com/" target="_blank" style="color: #0068c9;">CourtListener</a>.
+                            </p>
+                        </div>
+                        ${casesHtml}
                     </div>
-                    ${casesHtml}
                 </div>
             `;
         }
@@ -1371,18 +1568,22 @@
             }
 
             try {
-                // Check if API token is configured
-                if (COURTLISTENER_CONFIG.apiToken === 'YOUR_COURTLISTENER_API_TOKEN_HERE') {
-                    console.warn('CourtListener API token not configured');
-                    return [];
-                }
+                // Get DCA search information (always available)
+                const dcaSearches = await floridaDCASearch.getAllDCASearches(ruleNum, rule.title);
 
-                const cases = await courtListenerAPI.searchCasesForRule(ruleNum, rule.title);
+                let cases = [];
                 
-                // Update the case law section
+                // Check if CourtListener API token is configured for case search
+                if (COURTLISTENER_CONFIG.apiToken !== 'YOUR_COURTLISTENER_API_TOKEN_HERE') {
+                    cases = await courtListenerAPI.searchCasesForRule(ruleNum, rule.title);
+                } else {
+                    console.warn('CourtListener API token not configured - showing DCA searches only');
+                }
+                
+                // Update the case law section with both CourtListener cases and DCA searches
                 const caseLawSection = document.getElementById('case-law-section');
                 if (caseLawSection) {
-                    caseLawSection.outerHTML = renderCaseLawSection(cases, ruleNum);
+                    caseLawSection.outerHTML = renderCaseLawSection(cases, ruleNum, dcaSearches);
                 }
 
                 return cases;
@@ -1437,7 +1638,7 @@
                     </div>
                     
                     <!-- Case Law Section - Initially shows placeholder -->
-                    ${renderCaseLawSection([], ruleNum)}
+                    ${renderCaseLawSection([], ruleNum, [])}
                     
                     <div style="text-align: center; color: #666; font-size: 0.9rem; border-top: 1px solid #e1e4e8; padding-top: 1rem; margin-top: 3rem;">
                         <p>Florida Rules of Criminal Procedure | Last Updated: July 10, 2025</p>
