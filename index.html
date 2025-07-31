@@ -1,1283 +1,1166 @@
 <!doctype html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Florida Rules of Criminal Procedure Reference</title>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@stlite/browser@0.85.1/build/stlite.css"
-    />
-    <script
-      type="module"
-      src="https://cdn.jsdelivr.net/npm/@stlite/browser@0.85.1/build/stlite.js"
-    ></script>
-  </head>
-  <body>
-    <streamlit-app>
-import streamlit as st
-import re
-
-# Configure page
-st.set_page_config(
-    page_title="Florida Rules of Criminal Procedure",
-    page_icon="⚖️",
-    layout="wide"
-)
-
-# Custom CSS for improved styling
-st.markdown("""
-<style>
-    .main {
-        padding-top: 2rem;
-    }
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 2px;
-        background-color: #f0f2f6;
-        padding: 4px;
-        border-radius: 8px;
-    }
-    .stTabs [data-baseweb="tab"] {
-        height: 50px;
-        padding-left: 20px;
-        padding-right: 20px;
-        background-color: white;
-        border-radius: 6px;
-        margin: 2px;
-        font-weight: 500;
-    }
-    .stTabs [aria-selected="true"] {
-        background-color: #0068c9;
-        color: white;
-    }
-    .rule-card {
-        background-color: #f8f9fa;
-        padding: 1.5rem;
-        border-radius: 8px;
-        margin-bottom: 1rem;
-        border-left: 4px solid #0068c9;
-    }
-    .rule-number {
-        color: #0068c9;
-        font-weight: bold;
-        font-size: 1.1rem;
-    }
-    .rule-title {
-        font-weight: 600;
-        font-size: 1.2rem;
-        margin-bottom: 0.5rem;
-    }
-    .category-header {
-        background-color: #e1e4e8;
-        padding: 0.8rem 1.2rem;
-        border-radius: 6px;
-        margin: 1.5rem 0 1rem 0;
-        font-weight: 600;
-        font-size: 1.1rem;
-    }
-    .search-highlight {
-        background-color: #ffeb3b;
-        padding: 2px 4px;
-        border-radius: 3px;
-    }
-</style>
-""", unsafe_allow_html=True)
-
-# Title and introduction
-st.title("⚖️ Florida Rules of Criminal Procedure Reference")
-st.markdown("**Last Updated: July 10, 2025**")
-
-# Introduction
-with st.expander("ℹ️ About This Reference", expanded=False):
-    st.markdown(
-        "This reference provides a comprehensive overview of the **Florida Rules of Criminal Procedure** (Fla. R. Crim. P.). "
-        "These rules govern procedure in all criminal proceedings in Florida's state courts. Use the search function or browse by category to find specific rules."
-    )
-    st.markdown(
-        "[📄 View the complete official rules PDF](https://www-media.floridabar.org/uploads/2025/07/2025.07.10-Criminal-Procedure-Rules.pdf)"
-    )
-
-# Define categories
-categories = {
-    "Scope, Purpose and Construction": ["3.010", "3.020", "3.025"],
-    "General Provisions": ["3.030", "3.040", "3.050", "3.060", "3.070", "3.080", "3.090", "3.100", "3.110", "3.111", "3.112", "3.113", "3.115", "3.116"],
-    "Preliminary Proceedings": ["3.120", "3.121", "3.125", "3.130", "3.131", "3.132", "3.133", "3.134", "3.140", "3.141", "3.142", "3.150", "3.151", "3.152"],
-    "Arraignment and Pleas": ["3.160", "3.170", "3.171", "3.172", "3.180"],
-    "Pretrial Motions and Defenses": ["3.190", "3.191", "3.200", "3.201", "3.202", "3.203", "3.210", "3.211", "3.212", "3.213", "3.215", "3.216", "3.217", "3.218", "3.219", "3.220"],
-    "Change of Venue": ["3.240"],
-    "Substitution of Judge": ["3.230"],
-    "The Trial": ["3.250", "3.260", "3.270", "3.280", "3.300", "3.310", "3.315", "3.320", "3.340", "3.350", "3.360", "3.370", "3.380", "3.390"],
-    "Conduct of Trial; Jury Instructions": ["3.400", "3.410", "3.420", "3.430", "3.440", "3.450", "3.470", "3.480"],
-    "Posttrial Motions": ["3.500", "3.510", "3.530", "3.540", "3.550", "3.560", "3.570", "3.575", "3.580", "3.590"],
-    "Sentencing": ["3.700", "3.701", "3.703", "3.710", "3.711", "3.712", "3.720", "3.780", "3.790", "3.800", "3.801"],
-    "Execution of Sentence": ["3.810", "3.820"],
-    "Criminal Contempt": ["3.830", "3.840"],
-    "Postconviction Relief": ["3.850", "3.851", "3.852", "3.853"],
-    "Forms": ["3.984", "3.985", "3.986", "3.987", "3.988", "3.989", "3.990", "3.991", "3.992", "3.993", "3.994", "3.996"]
-}
-
-# Define comprehensive rules dictionary
-rules = {
-    # PART I: SCOPE, PURPOSE AND CONSTRUCTION
-    "3.010": {
-        "title": "Scope",
-        "category": "Scope, Purpose and Construction",
-        "text": (
-            "These rules govern procedure in all criminal proceedings in Florida's state courts, "
-            "including direct and indirect criminal contempt, proceedings under rule 3.850, and criminal "
-            "traffic offenses as provided by the Florida Rules of Traffic Court. They do "
-            "not apply to direct or indirect criminal contempt of a court acting in an appellate capacity. "
-            "The rules are known as the Florida Rules of Criminal Procedure and may be cited as 'Fla. R. Crim. P.'"
-        ),
-    },
-    "3.020": {
-        "title": "Purpose and Construction",
-        "category": "Scope, Purpose and Construction",
-        "text": (
-            "The rules are intended to ensure the just determination of every criminal proceeding. "
-            "They must be construed to secure simplicity in procedure and fairness in administration."
-        ),
-    },
-    "3.025": {
-        "title": "State and Prosecuting Attorney Defined",
-        "category": "Scope, Purpose and Construction",
-        "text": (
-            "Whenever the rules use the terms 'state,' 'state attorney,' 'prosecutor,' "
-            "'prosecuting officer,' or 'prosecuting attorney,' they refer to the prosecuting "
-            "authority representing the State of Florida."
-        ),
-    },
-    
-    # PART II: GENERAL PROVISIONS
-    "3.030": {
-        "title": "Service of Pleadings and Papers",
-        "category": "General Provisions",
-        "text": (
-            "This rule sets out how pleadings and other documents must be served and filed. "
-            "Every pleading after the initial indictment or information, written motions (unless "
-            "heard ex parte) and similar documents must be served on each party in accordance "
-            "with Florida Rule of General Practice and Judicial Administration 2.516."
-        ),
-    },
-    "3.040": {
-        "title": "Computation of Time",
-        "category": "General Provisions",
-        "text": (
-            "Computation of time is governed by Florida Rule of General Practice and Judicial "
-            "Administration 2.514. This includes how to calculate deadlines when the last day "
-            "falls on a weekend or holiday."
-        ),
-    },
-    "3.050": {
-        "title": "Enlargement of Time",
-        "category": "General Provisions",
-        "text": (
-            "When an act is required or allowed at or within a specified time, the court may "
-            "extend the time with or without motion or notice. However, the court may not extend "
-            "the time for making motions for new trial, arrest of judgment, or to vacate judgment."
-        ),
-    },
-    "3.060": {
-        "title": "Time for Service of Motions and Notice of Hearing",
-        "category": "General Provisions",
-        "text": (
-            "Unless otherwise required, every motion must be served at least 5 days before "
-            "the hearing. A copy of any written motion not served with the notice must accompany "
-            "the notice of hearing."
-        ),
-    },
-    "3.070": {
-        "title": "Additional Time After Service by Mail or E-mail",
-        "category": "General Provisions",
-        "text": (
-            "When service is by mail or e-mail, 5 days are added to the prescribed period. "
-            "This extension does not apply to service of process or when a different time is prescribed by court order."
-        ),
-    },
-    "3.080": {
-        "title": "Nonverification of Pleadings",
-        "category": "General Provisions",
-        "text": (
-            "Except when otherwise specifically required by the rules, every written pleading "
-            "or other document does not have to be verified or accompanied by an affidavit."
-        ),
-    },
-    "3.090": {
-        "title": "Pleading Captions",
-        "category": "General Provisions",
-        "text": (
-            "Every pleading, motion, order, judgment, or other document must have a caption "
-            "containing the name of the court, file number, and a designation identifying the "
-            "party filing it and its nature."
-        ),
-    },
-    "3.100": {
-        "title": "Attorney Not to Be Surety",
-        "category": "General Provisions",
-        "text": (
-            "No attorney of record in a case may act as surety for any defendant in the same case."
-        ),
-    },
-    "3.110": {
-        "title": "Televising, Photographing, Radio Broadcasting of Judicial Proceedings",
-        "category": "General Provisions",
-        "text": (
-            "Electronic media and still photography coverage of judicial proceedings is subject "
-            "to the standards of conduct and technology in Florida Rule of General Practice and "
-            "Judicial Administration 2.450."
-        ),
-    },
-    "3.111": {
-        "title": "Providing Counsel to Indigents",
-        "category": "General Provisions",
-        "text": (
-            "This rule governs the appointment of counsel for indigent defendants. A person "
-            "entitled to appointment of counsel may not waive this right except as provided. "
-            "The court must appoint counsel as soon as feasible after determining indigency."
-        ),
-    },
-    "3.112": {
-        "title": "Minimum Standards for Attorneys in Capital Cases",
-        "category": "General Provisions",
-        "text": (
-            "Sets minimum qualifications for attorneys representing defendants in capital cases. "
-            "Lead counsel must have at least 5 years criminal trial experience and have served "
-            "as lead or co-counsel in at least 9 jury trials of serious felonies."
-        ),
-    },
-    "3.113": {
-        "title": "Minimum Standards for Attorneys in Felony Cases",
-        "category": "General Provisions",
-        "text": (
-            "Establishes minimum standards for attorneys appointed to represent defendants in "
-            "non-capital felony cases, including experience requirements based on offense severity."
-        ),
-    },
-    "3.115": {
-        "title": "Duties of State Attorney; Criminal Intake",
-        "category": "General Provisions",
-        "text": (
-            "The state attorney shall provide the court with charging decisions within prescribed "
-            "time limits. This rule governs the criminal intake system and filing requirements."
-        ),
-    },
-    "3.116": {
-        "title": "Use of Communication Technology",
-        "category": "General Provisions",
-        "text": (
-            "Criminal proceedings may be conducted using communication technology as provided "
-            "by Florida Rule of General Practice and Judicial Administration 2.530."
-        ),
-    },
-    
-    # PART III: PRELIMINARY PROCEEDINGS
-    "3.120": {
-        "title": "Committing Judge",
-        "category": "Preliminary Proceedings",
-        "text": (
-            "A judge who has jurisdiction to try criminal offenses or a judge assigned for "
-            "first appearance proceedings may act as a committing judge."
-        ),
-    },
-    "3.121": {
-        "title": "Arrest Warrant",
-        "category": "Preliminary Proceedings",
-        "text": (
-            "An arrest warrant may be issued by a judge upon a sworn complaint showing probable "
-            "cause that an offense has been committed and that the defendant committed it."
-        ),
-    },
-    "3.125": {
-        "title": "Notice to Appear",
-        "category": "Preliminary Proceedings",
-        "text": (
-            "Unless indication of intent to contest requires a court appearance, an accused "
-            "may satisfy a notice to appear for certain offenses by paying the civil penalty "
-            "or posting bond according to the schedule."
-        ),
-    },
-    "3.130": {
-        "title": "First Appearance",
-        "category": "Preliminary Proceedings",
-        "text": (
-            "Every arrested person must be taken before a judicial officer within 24 hours. "
-            "The judge shall inform the defendant of the charges, right to counsel, right to "
-            "remain silent, and consider conditions of release."
-        ),
-    },
-    "3.131": {
-        "title": "Pretrial Release",
-        "category": "Preliminary Proceedings",
-        "text": (
-            "Unless charged with a capital offense or offense punishable by life imprisonment, "
-            "every person is entitled to pretrial release on reasonable conditions. The court "
-            "must consider various factors in determining conditions."
-        ),
-    },
-    "3.132": {
-        "title": "Pretrial Detention",
-        "category": "Preliminary Proceedings",
-        "text": (
-            "The state may move for pretrial detention under certain circumstances. This rule "
-            "sets procedures for detention hearings and findings required to hold defendant without bond."
-        ),
-    },
-    "3.133": {
-        "title": "Pretrial Probable Cause Determinations",
-        "category": "Preliminary Proceedings",
-        "text": (
-            "A defendant in custody must have a non-adversary probable cause determination "
-            "within 48 hours of arrest when the arrest was without a warrant."
-        ),
-    },
-    "3.134": {
-        "title": "Time for Filing Formal Charges",
-        "category": "Preliminary Proceedings",
-        "text": (
-            "If a defendant is in custody, formal charges must be filed within 30 days of arrest "
-            "for a felony and 15 days for a misdemeanor. Extensions may be granted for good cause."
-        ),
-    },
-    "3.140": {
-        "title": "Indictments; Informations",
-        "category": "Preliminary Proceedings",
-        "text": (
-            "Capital offenses must be prosecuted by indictment. All other criminal offenses may be "
-            "prosecuted by indictment or information. The charging document must be a plain, concise "
-            "and definite statement of the essential facts constituting the offense."
-        ),
-    },
-    "3.141": {
-        "title": "Indictment; Finding and Presentment",
-        "category": "Preliminary Proceedings",
-        "text": (
-            "An indictment must be found and presented by a grand jury properly impaneled and sworn. "
-            "The foreperson must sign all indictments, and the state attorney must sign all indictments "
-            "and informations."
-        ),
-    },
-    "3.142": {
-        "title": "Time Limitation for Prosecution",
-        "category": "Preliminary Proceedings",
-        "text": (
-            "Prosecution for certain offenses must commence within specific time limitations as "
-            "provided by Florida Statutes. This rule incorporates statutory limitations periods."
-        ),
-    },
-    "3.150": {
-        "title": "Joinder of Offenses and Defendants",
-        "category": "Preliminary Proceedings",
-        "text": (
-            "Two or more offenses may be charged in the same indictment or information if based "
-            "on the same act or transaction or connected acts. Two or more defendants may be "
-            "charged in the same indictment if they participated in the same acts."
-        ),
-    },
-    "3.151": {
-        "title": "Consolidation of Related Offenses",
-        "category": "Preliminary Proceedings",
-        "text": (
-            "A defendant must be furnished with a list of all related offenses if the state is "
-            "aware of them. The state must consolidate all known related charges."
-        ),
-    },
-    "3.152": {
-        "title": "Severance of Offenses and Defendants",
-        "category": "Preliminary Proceedings",
-        "text": (
-            "The court may order severance of offenses or defendants before trial on motion "
-            "if it will promote a fair determination of guilt or innocence."
-        ),
-    },
-    
-    # PART IV: ARRAIGNMENT AND PLEAS
-    "3.160": {
-        "title": "Arraignment",
-        "category": "Arraignment and Pleas",
-        "text": (
-            "The arraignment shall be in open court or by audiovisual device and shall consist "
-            "of reading the indictment or information and calling on the defendant to plead. "
-            "If the defendant remains silent, a plea of not guilty shall be entered."
-        ),
-    },
-    "3.170": {
-        "title": "Pleas",
-        "category": "Arraignment and Pleas",
-        "text": (
-            "A defendant may plead not guilty, guilty, or with court consent, nolo contendere. "
-            "The court may refuse to accept a guilty plea and must determine the plea is voluntary. "
-            "A plea of not guilty denies every material allegation."
-        ),
-    },
-    "3.171": {
-        "title": "Plea Discussions and Agreements",
-        "category": "Arraignment and Pleas",
-        "text": (
-            "The prosecutor and defense may engage in plea discussions. The court shall not "
-            "participate in plea negotiations but may inquire about the existence of agreements."
-        ),
-    },
-    "3.172": {
-        "title": "Acceptance of Guilty or Nolo Contendere Plea",
-        "category": "Arraignment and Pleas",
-        "text": (
-            "Before accepting a guilty or nolo plea, the court must determine the plea is voluntary "
-            "and has factual basis. The court must inform defendant of rights being waived."
-        ),
-    },
-    "3.180": {
-        "title": "Presence of Defendant",
-        "category": "Arraignment and Pleas",
-        "text": (
-            "The defendant must be present at arraignment, when a plea is made, at every stage "
-            "of trial, at sentencing, and at other proceedings as required. Limited exceptions apply."
-        ),
-    },
-    
-    # PART V: PRETRIAL MOTIONS AND DEFENSES
-    "3.190": {
-        "title": "Pretrial Motions",
-        "category": "Pretrial Motions and Defenses",
-        "text": (
-            "Every defense except not guilty may be made by motion. Defenses and objections "
-            "must be raised before trial by motion. The rule lists specific grounds that must "
-            "be raised by motion including jurisdiction, venue, and statute of limitations."
-        ),
-    },
-    "3.191": {
-        "title": "Speedy Trial",
-        "category": "Pretrial Motions and Defenses",
-        "text": (
-            "Every person charged with a crime shall be brought to trial within 90 days if "
-            "charged with misdemeanor or 175 days if charged with felony. Time may be extended "
-            "for various reasons including unavailability of defendant or essential witness."
-        ),
-    },
-    "3.200": {
-        "title": "Notice of Alibi",
-        "category": "Pretrial Motions and Defenses",
-        "text": (
-            "Upon written demand, the defendant must provide notice of intent to claim alibi "
-            "including specific place defendant claims to have been and names of alibi witnesses."
-        ),
-    },
-    "3.201": {
-        "title": "Notice by State of Intent to Use Similar Fact Evidence",
-        "category": "Pretrial Motions and Defenses",
-        "text": (
-            "When the state intends to use proof of other crimes, wrongs, or acts, it must "
-            "give notice at least 10 days before trial describing the evidence with particularity."
-        ),
-    },
-    "3.202": {
-        "title": "Expert Testimony of Mental State",
-        "category": "Pretrial Motions and Defenses",
-        "text": (
-            "When the state intends to use expert testimony about defendant's mental state, "
-            "notice must be given at least 20 days before trial or as soon as practicable."
-        ),
-    },
-    "3.203": {
-        "title": "Defendant's Mental State",
-        "category": "Pretrial Motions and Defenses",
-        "text": (
-            "Sets procedures for notice when defendant intends to rely on defense of insanity "
-            "or claim that defendant suffered from mental infirmity affecting legal responsibility."
-        ),
-    },
-    "3.210": {
-        "title": "Incompetence to Proceed: Procedure for Raising Issue",
-        "category": "Pretrial Motions and Defenses",
-        "text": (
-            "The issue of defendant's competence may be raised at any time. If reasonable grounds "
-            "exist, the court shall order evaluation by experts."
-        ),
-    },
-    "3.211": {
-        "title": "Competence to Proceed: Scope of Examination",
-        "category": "Pretrial Motions and Defenses",
-        "text": (
-            "Experts shall consider factors related to competence including capacity to understand "
-            "proceedings and assist in defense. Written findings must be filed."
-        ),
-    },
-    "3.212": {
-        "title": "Competence to Proceed: Hearing",
-        "category": "Pretrial Motions and Defenses",
-        "text": (
-            "The court must hold a hearing on competence within 20 days of filing expert reports. "
-            "If defendant is incompetent, proceedings are stayed."
-        ),
-    },
-    "3.213": {
-        "title": "Competence to Proceed: Hospitalization",
-        "category": "Pretrial Motions and Defenses",
-        "text": (
-            "If defendant is incompetent, the court may order hospitalization for treatment. "
-            "Commitment is limited to reasonable time to determine if competence can be restored."
-        ),
-    },
-    "3.215": {
-        "title": "Effect of Adjudication of Incompetence",
-        "category": "Pretrial Motions and Defenses",
-        "text": (
-            "Specifies effects of incompetence finding including tolling of speedy trial time "
-            "and procedures if competence is restored."
-        ),
-    },
-    "3.216": {
-        "title": "Insanity at Time of Offense",
-        "category": "Pretrial Motions and Defenses",
-        "text": (
-            "Procedures for plea of not guilty by reason of insanity including notice requirements "
-            "and examination procedures."
-        ),
-    },
-    "3.217": {
-        "title": "Judgment of Not Guilty by Reason of Insanity",
-        "category": "Pretrial Motions and Defenses",
-        "text": (
-            "Procedures following verdict of not guilty by reason of insanity including commitment "
-            "for examination and treatment."
-        ),
-    },
-    "3.218": {
-        "title": "Commitment of Defendant Found Not Guilty by Reason of Insanity",
-        "category": "Pretrial Motions and Defenses",
-        "text": (
-            "Court procedures for commitment and conditional release of defendants found not "
-            "guilty by reason of insanity."
-        ),
-    },
-    "3.219": {
-        "title": "Conditional Release",
-        "category": "Pretrial Motions and Defenses",
-        "text": (
-            "Procedures and criteria for conditional release of persons found not guilty by "
-            "reason of insanity including supervision requirements."
-        ),
-    },
-    "3.220": {
-        "title": "Discovery",
-        "category": "Pretrial Motions and Defenses",
-        "text": (
-            "Comprehensive discovery rules requiring disclosure of witness lists, statements, "
-            "physical evidence, and expert reports. Reciprocal discovery obligations for "
-            "prosecution and defense with specific timelines and procedures."
-        ),
-    },
-    
-    # PART VI: CHANGE OF VENUE
-    "3.240": {
-        "title": "Change of Venue",
-        "category": "Change of Venue",
-        "text": (
-            "The court may change venue on motion of any party if fair trial cannot be had "
-            "in the county where the case is pending. Factors include prejudicial publicity "
-            "or community prejudice."
-        ),
-    },
-    
-    # PART VII: SUBSTITUTION OF JUDGE  
-    "3.230": {
-        "title": "Disqualification of Judge",
-        "category": "Substitution of Judge",
-        "text": (
-            "A judge shall not preside over any case in which the judge is prejudiced or "
-            "interested. Motion to disqualify must be in writing, under oath, and filed "
-            "within reasonable time not to exceed 10 days."
-        ),
-    },
-    
-    # PART VIII: THE TRIAL
-    "3.250": {
-        "title": "Accusation and Demand for Trial",
-        "category": "The Trial",
-        "text": (
-            "The state and defendant have the right to demand trial by jury. If no demand "
-            "is made, the right is waived and trial shall be before the judge."
-        ),
-    },
-    "3.260": {
-        "title": "Waiver of Jury Trial",
-        "category": "The Trial",
-        "text": (
-            "A defendant may waive jury trial with consent of the state and approval of the "
-            "court. The court must determine the waiver is knowing and voluntary."
-        ),
-    },
-    "3.270": {
-        "title": "Number of Jurors",
-        "category": "The Trial",
-        "text": (
-            "Twelve persons shall constitute a jury to try all capital cases. Six persons "
-            "shall constitute a jury to try all other criminal cases."
-        ),
-    },
-    "3.280": {
-        "title": "Alternate Jurors",
-        "category": "The Trial",
-        "text": (
-            "The court may order selection of alternate jurors. Alternates shall be drawn "
-            "in the same manner and have the same qualifications as regular jurors."
-        ),
-    },
-    "3.300": {
-        "title": "Voir Dire Examination",
-        "category": "The Trial",
-        "text": (
-            "The court shall conduct initial voir dire of prospective jurors. Counsel for "
-            "both sides shall have reasonable opportunity to examine prospective jurors."
-        ),
-    },
-    "3.310": {
-        "title": "Time for Challenge",
-        "category": "The Trial",
-        "text": (
-            "The state or defendant may challenge an individual prospective juror before the "
-            "juror is sworn. The challenge shall be tried by the court."
-        ),
-    },
-    "3.315": {
-        "title": "Exercise of Challenges",
-        "category": "The Trial",
-        "text": (
-            "Challenges for cause shall be unlimited. Peremptory challenges are limited based "
-            "on offense type: 10 for capital cases, 6 for felonies, 3 for misdemeanors."
-        ),
-    },
-    "3.320": {
-        "title": "Manner of Challenge",
-        "category": "The Trial",
-        "text": (
-            "On the motion of any party, the manner of exercising challenges may be determined "
-            "by the court to expedite voir dire and protect juror privacy."
-        ),
-    },
-    "3.340": {
-        "title": "Effect of Error in Overruling Challenge",
-        "category": "The Trial",
-        "text": (
-            "Error in overruling challenge for cause is harmless if party uses peremptory "
-            "challenge to remove the juror, unless all peremptories are exhausted."
-        ),
-    },
-    "3.350": {
-        "title": "Oath of Jurors",
-        "category": "The Trial",
-        "text": (
-            "The jurors shall take an oath to well and truly try the issues between the "
-            "state and defendant according to the evidence and the law."
-        ),
-    },
-    "3.360": {
-        "title": "Conduct of Jurors",
-        "category": "The Trial",
-        "text": (
-            "The court shall instruct jurors on their conduct including prohibition on "
-            "discussing the case or conducting independent research."
-        ),
-    },
-    "3.370": {
-        "title": "Regulation and Separation of Jurors",
-        "category": "The Trial",
-        "text": (
-            "Jurors may separate during trial except in capital cases after submission. "
-            "The court may order sequestration in any case."
-        ),
-    },
-    "3.380": {
-        "title": "Motion for Judgment of Acquittal",
-        "category": "The Trial",
-        "text": (
-            "After the evidence on behalf of the state is concluded, defendant may move for "
-            "judgment of acquittal. The court shall grant the motion if evidence is insufficient."
-        ),
-    },
-    "3.390": {
-        "title": "Jury Instructions",
-        "category": "The Trial",
-        "text": (
-            "The court shall instruct the jury on the law applicable to the case. Standard "
-            "instructions shall be used when applicable. Requests must be made at close of evidence."
-        ),
-    },
-    
-    # PART IX: CONDUCT OF TRIAL; JURY INSTRUCTIONS
-    "3.400": {
-        "title": "Materials to the Jury Room",
-        "category": "Conduct of Trial; Jury Instructions",
-        "text": (
-            "The court may permit the jury to have certain materials in the jury room including "
-            "verdict forms, charges, and evidence that has been admitted."
-        ),
-    },
-    "3.410": {
-        "title": "Jury Request to Review Evidence",
-        "category": "Conduct of Trial; Jury Instructions",
-        "text": (
-            "After retirement, the jury may request additional instructions or to have testimony "
-            "read. The court shall respond after notice to counsel."
-        ),
-    },
-    "3.420": {
-        "title": "Recall of Jury",
-        "category": "Conduct of Trial; Jury Instructions",
-        "text": (
-            "The court may recall the jury after discharge to correct error in verdict form "
-            "if no prejudice will result."
-        ),
-    },
-    "3.430": {
-        "title": "Interview of Jurors",
-        "category": "Conduct of Trial; Jury Instructions",
-        "text": (
-            "A party may not interview jurors until the trial is concluded. The court may "
-            "restrict post-trial interviews to protect juror privacy."
-        ),
-    },
-    "3.440": {
-        "title": "Rendition of Verdict",
-        "category": "Conduct of Trial; Jury Instructions",
-        "text": (
-            "Verdicts shall be unanimous unless otherwise provided. The jury shall render "
-            "verdict in open court. Polling is permitted on request."
-        ),
-    },
-    "3.450": {
-        "title": "Polling the Jury",
-        "category": "Conduct of Trial; Jury Instructions",
-        "text": (
-            "On request, the court shall poll the jury to determine if the verdict is unanimous. "
-            "If not unanimous, the jury may be sent back for further deliberation."
-        ),
-    },
-    "3.470": {
-        "title": "Proceedings on Sealed Verdict",
-        "category": "Conduct of Trial; Jury Instructions",
-        "text": (
-            "When permitted by the court, the jury may seal its verdict and separate. The "
-            "verdict shall be opened in court in the jury's presence."
-        ),
-    },
-    "3.480": {
-        "title": "Discharge of Jurors",
-        "category": "Conduct of Trial; Jury Instructions",
-        "text": (
-            "After verdict is rendered and recorded, the jury shall be discharged. The court "
-            "may order jurors not to disclose deliberations."
-        ),
-    },
-    
-    # PART X: POSTTRIAL MOTIONS
-    "3.500": {
-        "title": "Verdict",
-        "category": "Posttrial Motions",
-        "text": (
-            "The jury may find defendant guilty, guilty of lesser offense, or not guilty. "
-            "Special verdicts may be required for certain issues."
-        ),
-    },
-    "3.510": {
-        "title": "Determination of Degree of Offense",
-        "category": "Posttrial Motions",
-        "text": (
-            "When an offense has degrees, the jury shall find the degree. If no degree is "
-            "found, the conviction is for the lowest degree."
-        ),
-    },
-    "3.530": {
-        "title": "Reconsideration of Ambiguous Verdict",
-        "category": "Posttrial Motions",
-        "text": (
-            "If verdict is ambiguous, the court may direct reconsideration. The jury may "
-            "be recalled to clarify the verdict."
-        ),
-    },
-    "3.540": {
-        "title": "When Evidence Sustains Only Conviction of Lesser Offense",
-        "category": "Posttrial Motions",
-        "text": (
-            "The defendant may be found guilty of any lesser offense necessarily included "
-            "in the offense charged and supported by evidence."
-        ),
-    },
-    "3.550": {
-        "title": "Disposition of Defendant",
-        "category": "Posttrial Motions",
-        "text": (
-            "If verdict is not guilty, defendant shall be immediately discharged. If guilty, "
-            "the court shall set sentencing."
-        ),
-    },
-    "3.560": {
-        "title": "Posttrial Release",
-        "category": "Posttrial Motions",
-        "text": (
-            "The court may deny or set conditions for release pending sentencing or appeal "
-            "based on specified criteria."
-        ),
-    },
-    "3.570": {
-        "title": "Motion in Arrest of Judgment",
-        "category": "Posttrial Motions",
-        "text": (
-            "The court shall arrest judgment if the indictment or information does not charge "
-            "a crime or if the court lacks jurisdiction."
-        ),
-    },
-    "3.575": {
-        "title": "Motion to Vacate, Set Aside, or Correct",
-        "category": "Posttrial Motions",
-        "text": (
-            "Addresses motions to correct illegal sentences or sentences imposed in illegal "
-            "manner."
-        ),
-    },
-    "3.580": {
-        "title": "Court May Grant New Trial",
-        "category": "Posttrial Motions",
-        "text": (
-            "When a verdict has been rendered against defendant, the court may grant new trial "
-            "on motion or its own initiative."
-        ),
-    },
-    "3.590": {
-        "title": "Motion for New Trial; Grounds",
-        "category": "Posttrial Motions",
-        "text": (
-            "New trial may be granted for: jury receiving evidence out of court, jury misconduct, "
-            "prosecutorial misconduct, new evidence, verdict contrary to law or weight of evidence."
-        ),
-    },
-    
-    # PART XI: SENTENCING
-    "3.700": {
-        "title": "Sentence Defined; Pronouncement and Entry",
-        "category": "Sentencing",
-        "text": (
-            "Sentence is the pronouncement by the court of the penalty imposed. Sentencing "
-            "shall be conducted in open court and entered in the minutes."
-        ),
-    },
-    "3.701": {
-        "title": "Sentencing Guidelines",
-        "category": "Sentencing",
-        "text": (
-            "The court shall consider applicable sentencing guidelines. Departure from guidelines "
-            "requires written reasons."
-        ),
-    },
-    "3.703": {
-        "title": "Sentencing Hearing",
-        "category": "Sentencing",
-        "text": (
-            "Prior to sentencing, the court shall conduct a hearing. The defendant shall be "
-            "present and have opportunity for allocution."
-        ),
-    },
-    "3.710": {
-        "title": "Presentence Report",
-        "category": "Sentencing",
-        "text": (
-            "The court may order a presentence investigation. The report shall include criminal "
-            "history, circumstances of offense, victim impact, and sentencing recommendations."
-        ),
-    },
-    "3.711": {
-        "title": "Presentence Report; When Prepared",
-        "category": "Sentencing",
-        "text": (
-            "Presentence reports shall be prepared in all felony cases unless waived. Reports "
-            "are mandatory for certain offenses."
-        ),
-    },
-    "3.712": {
-        "title": "Presentence Report; Disclosure",
-        "category": "Sentencing",
-        "text": (
-            "The presentence report shall be disclosed to parties before sentencing. Objections "
-            "must be filed before the hearing."
-        ),
-    },
-    "3.720": {
-        "title": "Sentencing Hearing for Capital Cases",
-        "category": "Sentencing",
-        "text": (
-            "Special procedures for sentencing in capital cases including jury recommendation "
-            "on death penalty and required findings by the court."
-        ),
-    },
-    "3.780": {
-        "title": "Sentencing Hearing for Offenses Prior to October 1, 1983",
-        "category": "Sentencing",
-        "text": (
-            "Procedures for sentencing under prior law for offenses committed before the "
-            "effective date of sentencing guidelines."
-        ),
-    },
-    "3.790": {
-        "title": "Probation and Community Control",
-        "category": "Sentencing",
-        "text": (
-            "Procedures for placement on probation or community control including conditions "
-            "and revocation proceedings."
-        ),
-    },
-    "3.800": {
-        "title": "Correction, Reduction, and Modification of Sentences",
-        "category": "Sentencing",
-        "text": (
-            "Court may correct illegal sentence at any time. Court may reduce or modify legal "
-            "sentence within 60 days. Includes procedures for correcting jail credit."
-        ),
-    },
-    "3.801": {
-        "title": "Correction of Jail Credit",
-        "category": "Sentencing",
-        "text": (
-            "Defendant is entitled to credit for time served. Motion to correct credit may "
-            "be filed at any time."
-        ),
-    },
-    
-    # PART XII: EXECUTION OF SENTENCE
-    "3.810": {
-        "title": "Commitment of Defendant; Duty of Sheriff",
-        "category": "Execution of Sentence",
-        "text": (
-            "When defendant is sentenced to incarceration, the court shall issue commitment. "
-            "The sheriff shall execute the commitment and deliver defendant."
-        ),
-    },
-    "3.820": {
-        "title": "Habeas Corpus",
-        "category": "Execution of Sentence",
-        "text": (
-            "Procedures for habeas corpus proceedings to challenge illegal detention. Includes "
-            "requirements for petition and hearing procedures."
-        ),
-    },
-    
-    # PART XIII: CRIMINAL CONTEMPT
-    "3.830": {
-        "title": "Direct Criminal Contempt",
-        "category": "Criminal Contempt",
-        "text": (
-            "Summary punishment may be imposed for contempt committed in the presence of the "
-            "court. Maximum penalty is 6 months jail and/or $500 fine."
-        ),
-    },
-    "3.840": {
-        "title": "Indirect Criminal Contempt",
-        "category": "Criminal Contempt",
-        "text": (
-            "Contempt not in court's presence requires notice and hearing. Defendant has right "
-            "to counsel and jury trial if penalty exceeds 6 months."
-        ),
-    },
-    
-    # PART XIV: POSTCONVICTION RELIEF
-    "3.850": {
-        "title": "Motion to Vacate, Set Aside, or Correct Sentence",
-        "category": "Postconviction Relief",
-        "text": (
-            "Procedures for collateral attack on conviction or sentence. Must be filed within "
-            "2 years of final judgment with limited exceptions. Court must grant hearing unless "
-            "motion is legally insufficient."
-        ),
-    },
-    "3.851": {
-        "title": "Collateral Relief After Death Sentence",
-        "category": "Postconviction Relief",
-        "text": (
-            "Special procedures for postconviction relief in death penalty cases including "
-            "time limits, appointment of counsel, and evidentiary hearings."
-        ),
-    },
-    "3.852": {
-        "title": "Capital Postconviction Public Records Production",
-        "category": "Postconviction Relief",
-        "text": (
-            "Procedures for obtaining public records in capital postconviction proceedings. "
-            "Requires agencies to provide records within specified time limits."
-        ),
-    },
-    "3.853": {
-        "title": "Motion for Postconviction DNA Testing",
-        "category": "Postconviction Relief",
-        "text": (
-            "Procedures to obtain DNA testing of evidence that may exonerate defendant. "
-            "Requires showing that testing may produce exculpatory evidence."
-        ),
-    },
-    
-    # PART XV: FORMS
-    "3.984": {
-        "title": "Application for Criminal Indigent Status",
-        "category": "Forms",
-        "text": (
-            "Standard form for determining eligibility for appointed counsel based on "
-            "financial resources and obligations."
-        ),
-    },
-    "3.985": {
-        "title": "Standard Jury Instructions",
-        "category": "Forms",
-        "text": (
-            "Forms for standard jury instructions approved by the Florida Supreme Court "
-            "for use in criminal trials."
-        ),
-    },
-    "3.986": {
-        "title": "Forms for Use with Rules",
-        "category": "Forms",
-        "text": (
-            "Standard forms for motions, orders, and other documents used in criminal "
-            "proceedings."
-        ),
-    },
-    "3.987": {
-        "title": "Motion for Postconviction Relief",
-        "category": "Forms",
-        "text": (
-            "Standard form for filing motion under rule 3.850 for postconviction relief."
-        ),
-    },
-    "3.988": {
-        "title": "Sentencing Guidelines Scoresheet",
-        "category": "Forms",
-        "text": (
-            "Form for calculating sentencing guidelines score based on offense severity "
-            "and criminal history."
-        ),
-    },
-    "3.989": {
-        "title": "Affidavit, Petition, and Order to Expunge or Seal",
-        "category": "Forms",
-        "text": (
-            "Forms for seeking expungement or sealing of criminal records when eligible "
-            "under Florida law."
-        ),
-    },
-    "3.990": {
-        "title": "Sentencing Guidelines Departure Form",
-        "category": "Forms",
-        "text": (
-            "Form for documenting reasons for departure from sentencing guidelines."
-        ),
-    },
-    "3.991": {
-        "title": "Criminal Punishment Code Scoresheet",
-        "category": "Forms",
-        "text": (
-            "Updated scoresheet form for offenses committed under the Criminal Punishment Code."
-        ),
-    },
-    "3.992": {
-        "title": "Criminal Punishment Code Supplemental Scoresheet",
-        "category": "Forms",
-        "text": (
-            "Additional scoresheet for multiple offenses or enhancements under Criminal "
-            "Punishment Code."
-        ),
-    },
-    "3.993": {
-        "title": "Forms for Capital Cases",
-        "category": "Forms",
-        "text": (
-            "Specialized forms for use in death penalty cases including verdict forms "
-            "and sentencing orders."
-        ),
-    },
-    "3.994": {
-        "title": "Order of Probation",
-        "category": "Forms",
-        "text": (
-            "Standard form for placing defendant on probation with standard and special "
-            "conditions."
-        ),
-    },
-    "3.996": {
-        "title": "Forms Related to Competency",
-        "category": "Forms",
-        "text": (
-            "Forms for competency evaluations, commitment orders, and restoration proceedings."
-        ),
-    },
-}
-
-# Search functionality
-search_query = st.text_input("🔍 Search rules by number, title, or content:", placeholder="e.g., 'speedy trial', '3.191', 'discovery'")
-
-# Create tabs for navigation
-tab1, tab2, tab3 = st.tabs(["📋 Browse by Category", "📑 All Rules", "ℹ️ Quick Reference"])
-
-# Helper function to highlight search terms
-def highlight_search(text, query):
-    if not query:
-        return text
-    pattern = re.compile(re.escape(query), re.IGNORECASE)
-    return pattern.sub(f'<span class="search-highlight">{query}</span>', text)
-
-# Helper function to filter rules
-def filter_rules(query):
-    if not query:
-        return rules
-    
-    query_lower = query.lower()
-    filtered = {}
-    
-    for rule_num, rule_data in rules.items():
-        if (query_lower in rule_num.lower() or 
-            query_lower in rule_data["title"].lower() or 
-            query_lower in rule_data["text"].lower()):
-            filtered[rule_num] = rule_data
-    
-    return filtered
-
-# Tab 1: Browse by Category
-with tab1:
-    if search_query:
-        st.info(f"Showing results for: **{search_query}**")
-        filtered_rules = filter_rules(search_query)
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         
-        if filtered_rules:
-            # Group filtered rules by category
-            for category, rule_numbers in categories.items():
-                category_rules = {num: filtered_rules[num] for num in rule_numbers if num in filtered_rules}
-                
-                if category_rules:
-                    st.markdown(f'<div class="category-header">{category}</div>', unsafe_allow_html=True)
-                    
-                    for rule_num, rule_data in category_rules.items():
-                        with st.container():
-                            st.markdown(f'''
-                            <div class="rule-card">
-                                <div class="rule-number">Rule {rule_num}</div>
-                                <div class="rule-title">{highlight_search(rule_data["title"], search_query)}</div>
-                                <div>{highlight_search(rule_data["text"], search_query)}</div>
-                            </div>
-                            ''', unsafe_allow_html=True)
-        else:
-            st.warning("No rules found matching your search.")
-    else:
-        # Show categories with expandable sections
-        for category, rule_numbers in categories.items():
-            with st.expander(f"**{category}** ({len(rule_numbers)} rules)", expanded=False):
-                for rule_num in rule_numbers:
-                    if rule_num in rules:
-                        rule_data = rules[rule_num]
-                        st.markdown(f'''
-                        <div class="rule-card">
-                            <div class="rule-number">Rule {rule_num}</div>
-                            <div class="rule-title">{rule_data["title"]}</div>
-                            <div>{rule_data["text"]}</div>
-                        </div>
-                        ''', unsafe_allow_html=True)
-
-# Tab 2: All Rules
-with tab2:
-    if search_query:
-        st.info(f"Showing results for: **{search_query}**")
-        filtered_rules = filter_rules(search_query)
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+        }
         
-        if filtered_rules:
-            st.write(f"Found {len(filtered_rules)} rules")
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #0068c9;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header .subtitle {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .search-container {
+            margin: 2rem 0;
+            text-align: center;
+        }
+        
+        .search-input {
+            width: 100%;
+            max-width: 600px;
+            padding: 1rem;
+            font-size: 1.1rem;
+            border: 2px solid #e1e4e8;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        .search-input:focus {
+            border-color: #0068c9;
+        }
+        
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 1rem;
+            background: #f0f2f6;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .tab:hover {
+            background: #e1e4e8;
+        }
+        
+        .tab.active {
+            background: #0068c9;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .category {
+            margin-bottom: 2rem;
+        }
+        
+        .category-header {
+            background: #e1e4e8;
+            padding: 1rem;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .category-header:hover {
+            background: #d1d4d8;
+        }
+        
+        .category-content {
+            display: none;
+        }
+        
+        .category-content.expanded {
+            display: block;
+        }
+        
+        .rule-card {
+            background: #f8f9fa;
+            border-left: 4px solid #0068c9;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            transition: transform 0.2s;
+        }
+        
+        .rule-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .rule-number {
+            color: #0068c9;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .rule-title {
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+        
+        .rule-category {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            font-style: italic;
+        }
+        
+        .rule-text {
+            color: #555;
+            line-height: 1.6;
+        }
+        
+        .search-highlight {
+            background-color: #ffeb3b;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        
+        .quick-ref {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .quick-ref-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #0068c9;
+        }
+        
+        .quick-ref-section h3 {
+            margin-bottom: 1rem;
+            color: #0068c9;
+        }
+        
+        .quick-ref-section ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .quick-ref-section li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e1e4e8;
+        }
+        
+        .quick-ref-section li:last-child {
+            border-bottom: none;
+        }
+        
+        .rule-selector {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1rem;
+            border: 2px solid #e1e4e8;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem;
+            color: #666;
+            font-size: 0.9rem;
+            background: white;
+            border-radius: 8px;
+        }
+        
+        .results-count {
+            color: #0068c9;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+        
+        .no-results {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
             
-            # Show all filtered rules
-            for rule_num, rule_data in sorted(filtered_rules.items()):
-                with st.container():
-                    st.markdown(f'''
-                    <div class="rule-card">
-                        <div class="rule-number">Rule {rule_num}</div>
-                        <div class="rule-title">{highlight_search(rule_data["title"], search_query)}</div>
-                        <div style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;">Category: {rule_data["category"]}</div>
-                        <div>{highlight_search(rule_data["text"], search_query)}</div>
-                    </div>
-                    ''', unsafe_allow_html=True)
-        else:
-            st.warning("No rules found matching your search.")
-    else:
-        # Dropdown to select specific rule
-        rule_list = list(rules.keys())
-        selected = st.selectbox(
-            "Select a Rule", 
-            rule_list, 
-            format_func=lambda x: f"Rule {x}: {rules[x]['title']}"
-        )
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚖️ Florida Rules of Criminal Procedure Reference</h1>
+            <div class="subtitle">Complete reference guide updated July 10, 2025</div>
+            <p>This reference provides comprehensive coverage of all Florida Rules of Criminal Procedure. Use the search function or browse by category to find specific rules.</p>
+            <p><a href="https://www-media.floridabar.org/uploads/2025/07/2025.07.10-Criminal-Procedure-Rules.pdf" target="_blank">📄 View Official PDF</a></p>
+        </div>
         
-        if selected:
-            rule_data = rules[selected]
-            st.markdown(f'''
-            <div class="rule-card">
-                <div class="rule-number">Rule {selected}</div>
-                <div class="rule-title">{rule_data["title"]}</div>
-                <div style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;">Category: {rule_data["category"]}</div>
-                <div>{rule_data["text"]}</div>
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search rules by number, title, or content (e.g., 'speedy trial', '3.191', 'discovery')">
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('browse')">📋 Browse by Category</button>
+            <button class="tab" onclick="showTab('all')">📑 All Rules</button>
+            <button class="tab" onclick="showTab('quick')">ℹ️ Quick Reference</button>
+        </div>
+        
+        <div id="browse" class="tab-content active">
+            <div id="browseContent"></div>
+        </div>
+        
+        <div id="all" class="tab-content">
+            <select id="ruleSelector" class="rule-selector">
+                <option value="">Select a rule...</option>
+            </select>
+            <div id="allContent"></div>
+        </div>
+        
+        <div id="quick" class="tab-content">
+            <div class="quick-ref">
+                <div class="quick-ref-section">
+                    <h3>🕒 Important Time Limits</h3>
+                    <ul>
+                        <li><strong>First Appearance:</strong> Within 24 hours of arrest (Rule 3.130)</li>
+                        <li><strong>Probable Cause Determination:</strong> Within 48 hours if arrested without warrant (Rule 3.133)</li>
+                        <li><strong>Filing Charges:</strong> 30 days for felony, 15 days for misdemeanor (Rule 3.134)</li>
+                        <li><strong>Speedy Trial:</strong> 90 days for misdemeanor, 175 days for felony (Rule 3.191)</li>
+                        <li><strong>Motion for New Trial:</strong> Within 10 days of verdict (Rule 3.590)</li>
+                        <li><strong>Sentence Correction:</strong> Within 60 days (Rule 3.800)</li>
+                        <li><strong>Rule 3.850 Motion:</strong> Within 2 years of final judgment</li>
+                    </ul>
+                </div>
+                
+                <div class="quick-ref-section">
+                    <h3>👥 Jury Requirements</h3>
+                    <ul>
+                        <li><strong>Capital Cases:</strong> 12 jurors (Rule 3.270)</li>
+                        <li><strong>Other Cases:</strong> 6 jurors (Rule 3.270)</li>
+                        <li><strong>Verdict:</strong> Must be unanimous (Rule 3.440)</li>
+                    </ul>
+                </div>
+                
+                <div class="quick-ref-section">
+                    <h3>📋 Key Pretrial Rules</h3>
+                    <ul>
+                        <li><strong>Discovery:</strong> Rule 3.220</li>
+                        <li><strong>Depositions:</strong> Rule 3.190</li>
+                        <li><strong>Speedy Trial:</strong> Rule 3.191</li>
+                        <li><strong>Change of Venue:</strong> Rule 3.240</li>
+                        <li><strong>Competency:</strong> Rules 3.210-3.215</li>
+                        <li><strong>Plea Agreements:</strong> Rule 3.171</li>
+                    </ul>
+                </div>
+                
+                <div class="quick-ref-section">
+                    <h3>⚖️ Peremptory Challenges</h3>
+                    <ul>
+                        <li><strong>Capital Cases:</strong> 10 per side (Rule 3.315)</li>
+                        <li><strong>Felonies:</strong> 6 per side (Rule 3.315)</li>
+                        <li><strong>Misdemeanors:</strong> 3 per side (Rule 3.315)</li>
+                    </ul>
+                </div>
             </div>
-            ''', unsafe_allow_html=True)
-
-# Tab 3: Quick Reference
-with tab3:
-    st.markdown("### 📚 Quick Reference Guide")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("""
-        **🕒 Important Time Limits:**
-        - **First Appearance**: Within 24 hours of arrest (Rule 3.130)
-        - **Probable Cause Determination**: Within 48 hours if arrested without warrant (Rule 3.133)
-        - **Filing Charges**: 30 days for felony, 15 days for misdemeanor (Rule 3.134)
-        - **Speedy Trial**: 90 days for misdemeanor, 175 days for felony (Rule 3.191)
-        - **Motion for New Trial**: Within 10 days of verdict (Rule 3.590)
-        - **Sentence Correction**: Within 60 days (Rule 3.800)
-        - **Rule 3.850 Motion**: Within 2 years of final judgment
+        </div>
         
-        **👥 Jury Requirements:**
-        - **Capital Cases**: 12 jurors (Rule 3.270)
-        - **Other Cases**: 6 jurors (Rule 3.270)
-        - **Verdict**: Must be unanimous (Rule 3.440)
-        """)
-    
-    with col2:
-        st.markdown("""
-        **📋 Key Pretrial Rules:**
-        - **Discovery**: Rule 3.220
-        - **Depositions**: Rule 3.190
-        - **Speedy Trial**: Rule 3.191
-        - **Change of Venue**: Rule 3.240
-        - **Competency**: Rules 3.210-3.215
-        - **Plea Agreements**: Rule 3.171
-        
-        **⚖️ Peremptory Challenges:**
-        - **Capital Cases**: 10 per side (Rule 3.315)
-        - **Felonies**: 6 per side (Rule 3.315)
-        - **Misdemeanors**: 3 per side (Rule 3.315)
-        """)
-    
-    st.markdown("---")
-    st.markdown("""
-    **🔗 Useful Resources:**
-    - [Florida Bar - Criminal Procedure Rules](https://www.floridabar.org/rules/ctproc/)
-    - [Florida Courts - Rules & Forms](https://www.flcourts.gov/Resources-Services/Court-Improvement/Florida-Courts-Rules-Forms)
-    - [Florida Legislature - Criminal Statutes](http://www.leg.state.fl.us/statutes/)
-    """)
-
-# Footer
-st.markdown("---")
-st.markdown(
-    """
-    <div style='text-align: center; color: #666; font-size: 0.85rem;'>
-    <p>This reference tool is for informational purposes only and should not be considered legal advice.</p>
-    <p>Always consult the official rules and seek professional legal counsel for specific situations.</p>
-    <p>© 2025 Florida Rules of Criminal Procedure Reference | Data current as of July 10, 2025</p>
+        <div class="footer">
+            <p>This reference tool is for informational purposes only and should not be considered legal advice.</p>
+            <p>Always consult the official rules and seek professional legal counsel for specific situations.</p>
+            <p>© 2025 Florida Rules of Criminal Procedure Reference | Data current as of July 10, 2025</p>
+        </div>
     </div>
-    """, 
-    unsafe_allow_html=True
-)
-    </streamlit-app>
-  </body>
+
+    <script>
+        // Define categories and rules data
+        const categories = {
+            "Scope, Purpose and Construction": ["3.010", "3.020", "3.025"],
+            "General Provisions": ["3.030", "3.040", "3.050", "3.060", "3.070", "3.080", "3.090", "3.100", "3.110", "3.111", "3.112", "3.113", "3.115", "3.116"],
+            "Preliminary Proceedings": ["3.120", "3.121", "3.125", "3.130", "3.131", "3.132", "3.133", "3.134", "3.140", "3.141", "3.142", "3.150", "3.151", "3.152"],
+            "Arraignment and Pleas": ["3.160", "3.170", "3.171", "3.172", "3.180"],
+            "Pretrial Motions and Defenses": ["3.190", "3.191", "3.200", "3.201", "3.202", "3.203", "3.210", "3.211", "3.212", "3.213", "3.215", "3.216", "3.217", "3.218", "3.219", "3.220"],
+            "Change of Venue": ["3.240"],
+            "Substitution of Judge": ["3.230"],
+            "The Trial": ["3.250", "3.260", "3.270", "3.280", "3.300", "3.310", "3.315", "3.320", "3.340", "3.350", "3.360", "3.370", "3.380", "3.390"],
+            "Conduct of Trial; Jury Instructions": ["3.400", "3.410", "3.420", "3.430", "3.440", "3.450", "3.470", "3.480"],
+            "Posttrial Motions": ["3.500", "3.510", "3.530", "3.540", "3.550", "3.560", "3.570", "3.575", "3.580", "3.590"],
+            "Sentencing": ["3.700", "3.701", "3.703", "3.710", "3.711", "3.712", "3.720", "3.780", "3.790", "3.800", "3.801"],
+            "Execution of Sentence": ["3.810", "3.820"],
+            "Criminal Contempt": ["3.830", "3.840"],
+            "Postconviction Relief": ["3.850", "3.851", "3.852", "3.853"],
+            "Forms": ["3.984", "3.985", "3.986", "3.987", "3.988", "3.989", "3.990", "3.991", "3.992", "3.993", "3.994", "3.996"]
+        };
+
+        const rules = {
+            "3.010": {
+                "title": "Scope",
+                "category": "Scope, Purpose and Construction",
+                "text": "These rules govern procedure in all criminal proceedings in Florida's state courts, including direct and indirect criminal contempt, proceedings under rule 3.850, and criminal traffic offenses as provided by the Florida Rules of Traffic Court. They do not apply to direct or indirect criminal contempt of a court acting in an appellate capacity. The rules are known as the Florida Rules of Criminal Procedure and may be cited as 'Fla. R. Crim. P.'"
+            },
+            "3.020": {
+                "title": "Purpose and Construction",
+                "category": "Scope, Purpose and Construction",
+                "text": "The rules are intended to ensure the just determination of every criminal proceeding. They must be construed to secure simplicity in procedure and fairness in administration."
+            },
+            "3.025": {
+                "title": "State and Prosecuting Attorney Defined",
+                "category": "Scope, Purpose and Construction",
+                "text": "Whenever the rules use the terms 'state,' 'state attorney,' 'prosecutor,' 'prosecuting officer,' or 'prosecuting attorney,' they refer to the prosecuting authority representing the State of Florida."
+            },
+            "3.030": {
+                "title": "Service of Pleadings and Papers",
+                "category": "General Provisions",
+                "text": "This rule sets out how pleadings and other documents must be served and filed. Every pleading after the initial indictment or information, written motions (unless heard ex parte) and similar documents must be served on each party in accordance with Florida Rule of General Practice and Judicial Administration 2.516."
+            },
+            "3.040": {
+                "title": "Computation of Time",
+                "category": "General Provisions",
+                "text": "Computation of time is governed by Florida Rule of General Practice and Judicial Administration 2.514. This includes how to calculate deadlines when the last day falls on a weekend or holiday."
+            },
+            "3.050": {
+                "title": "Enlargement of Time",
+                "category": "General Provisions",
+                "text": "When an act is required or allowed at or within a specified time, the court may extend the time with or without motion or notice. However, the court may not extend the time for making motions for new trial, arrest of judgment, or to vacate judgment."
+            },
+            "3.060": {
+                "title": "Time for Service of Motions and Notice of Hearing",
+                "category": "General Provisions",
+                "text": "Unless otherwise required, every motion must be served at least 5 days before the hearing. A copy of any written motion not served with the notice must accompany the notice of hearing."
+            },
+            "3.070": {
+                "title": "Additional Time After Service by Mail or E-mail",
+                "category": "General Provisions",
+                "text": "When service is by mail or e-mail, 5 days are added to the prescribed period. This extension does not apply to service of process or when a different time is prescribed by court order."
+            },
+            "3.080": {
+                "title": "Nonverification of Pleadings",
+                "category": "General Provisions",
+                "text": "Except when otherwise specifically required by the rules, every written pleading or other document does not have to be verified or accompanied by an affidavit."
+            },
+            "3.090": {
+                "title": "Pleading Captions",
+                "category": "General Provisions",
+                "text": "Every pleading, motion, order, judgment, or other document must have a caption containing the name of the court, file number, and a designation identifying the party filing it and its nature."
+            },
+            "3.100": {
+                "title": "Attorney Not to Be Surety",
+                "category": "General Provisions",
+                "text": "No attorney of record in a case may act as surety for any defendant in the same case."
+            },
+            "3.110": {
+                "title": "Televising, Photographing, Radio Broadcasting of Judicial Proceedings",
+                "category": "General Provisions",
+                "text": "Electronic media and still photography coverage of judicial proceedings is subject to the standards of conduct and technology in Florida Rule of General Practice and Judicial Administration 2.450."
+            },
+            "3.111": {
+                "title": "Providing Counsel to Indigents",
+                "category": "General Provisions",
+                "text": "This rule governs the appointment of counsel for indigent defendants. A person entitled to appointment of counsel may not waive this right except as provided. The court must appoint counsel as soon as feasible after determining indigency."
+            },
+            "3.112": {
+                "title": "Minimum Standards for Attorneys in Capital Cases",
+                "category": "General Provisions",
+                "text": "Sets minimum qualifications for attorneys representing defendants in capital cases. Lead counsel must have at least 5 years criminal trial experience and have served as lead or co-counsel in at least 9 jury trials of serious felonies."
+            },
+            "3.113": {
+                "title": "Minimum Standards for Attorneys in Felony Cases",
+                "category": "General Provisions",
+                "text": "Establishes minimum standards for attorneys appointed to represent defendants in non-capital felony cases, including experience requirements based on offense severity."
+            },
+            "3.115": {
+                "title": "Duties of State Attorney; Criminal Intake",
+                "category": "General Provisions",
+                "text": "The state attorney shall provide the court with charging decisions within prescribed time limits. This rule governs the criminal intake system and filing requirements."
+            },
+            "3.116": {
+                "title": "Use of Communication Technology",
+                "category": "General Provisions",
+                "text": "Criminal proceedings may be conducted using communication technology as provided by Florida Rule of General Practice and Judicial Administration 2.530."
+            },
+            "3.120": {
+                "title": "Committing Judge",
+                "category": "Preliminary Proceedings",
+                "text": "A judge who has jurisdiction to try criminal offenses or a judge assigned for first appearance proceedings may act as a committing judge."
+            },
+            "3.121": {
+                "title": "Arrest Warrant",
+                "category": "Preliminary Proceedings",
+                "text": "An arrest warrant may be issued by a judge upon a sworn complaint showing probable cause that an offense has been committed and that the defendant committed it."
+            },
+            "3.125": {
+                "title": "Notice to Appear",
+                "category": "Preliminary Proceedings",
+                "text": "Unless indication of intent to contest requires a court appearance, an accused may satisfy a notice to appear for certain offenses by paying the civil penalty or posting bond according to the schedule."
+            },
+            "3.130": {
+                "title": "First Appearance",
+                "category": "Preliminary Proceedings",
+                "text": "Every arrested person must be taken before a judicial officer within 24 hours. The judge shall inform the defendant of the charges, right to counsel, right to remain silent, and consider conditions of release."
+            },
+            "3.131": {
+                "title": "Pretrial Release",
+                "category": "Preliminary Proceedings",
+                "text": "Unless charged with a capital offense or offense punishable by life imprisonment, every person is entitled to pretrial release on reasonable conditions. The court must consider various factors in determining conditions."
+            },
+            "3.132": {
+                "title": "Pretrial Detention",
+                "category": "Preliminary Proceedings",
+                "text": "The state may move for pretrial detention under certain circumstances. This rule sets procedures for detention hearings and findings required to hold defendant without bond."
+            },
+            "3.133": {
+                "title": "Pretrial Probable Cause Determinations",
+                "category": "Preliminary Proceedings",
+                "text": "A defendant in custody must have a non-adversary probable cause determination within 48 hours of arrest when the arrest was without a warrant."
+            },
+            "3.134": {
+                "title": "Time for Filing Formal Charges",
+                "category": "Preliminary Proceedings",
+                "text": "If a defendant is in custody, formal charges must be filed within 30 days of arrest for a felony and 15 days for a misdemeanor. Extensions may be granted for good cause."
+            },
+            "3.140": {
+                "title": "Indictments; Informations",
+                "category": "Preliminary Proceedings",
+                "text": "Capital offenses must be prosecuted by indictment. All other criminal offenses may be prosecuted by indictment or information. The charging document must be a plain, concise and definite statement of the essential facts constituting the offense."
+            },
+            "3.141": {
+                "title": "Indictment; Finding and Presentment",
+                "category": "Preliminary Proceedings",
+                "text": "An indictment must be found and presented by a grand jury properly impaneled and sworn. The foreperson must sign all indictments, and the state attorney must sign all indictments and informations."
+            },
+            "3.142": {
+                "title": "Time Limitation for Prosecution",
+                "category": "Preliminary Proceedings",
+                "text": "Prosecution for certain offenses must commence within specific time limitations as provided by Florida Statutes. This rule incorporates statutory limitations periods."
+            },
+            "3.150": {
+                "title": "Joinder of Offenses and Defendants",
+                "category": "Preliminary Proceedings",
+                "text": "Two or more offenses may be charged in the same indictment or information if based on the same act or transaction or connected acts. Two or more defendants may be charged in the same indictment if they participated in the same acts."
+            },
+            "3.151": {
+                "title": "Consolidation of Related Offenses",
+                "category": "Preliminary Proceedings",
+                "text": "A defendant must be furnished with a list of all related offenses if the state is aware of them. The state must consolidate all known related charges."
+            },
+            "3.152": {
+                "title": "Severance of Offenses and Defendants",
+                "category": "Preliminary Proceedings",
+                "text": "The court may order severance of offenses or defendants before trial on motion if it will promote a fair determination of guilt or innocence."
+            },
+            "3.160": {
+                "title": "Arraignment",
+                "category": "Arraignment and Pleas",
+                "text": "The arraignment shall be in open court or by audiovisual device and shall consist of reading the indictment or information and calling on the defendant to plead. If the defendant remains silent, a plea of not guilty shall be entered."
+            },
+            "3.170": {
+                "title": "Pleas",
+                "category": "Arraignment and Pleas",
+                "text": "A defendant may plead not guilty, guilty, or with court consent, nolo contendere. The court may refuse to accept a guilty plea and must determine the plea is voluntary. A plea of not guilty denies every material allegation."
+            },
+            "3.171": {
+                "title": "Plea Discussions and Agreements",
+                "category": "Arraignment and Pleas",
+                "text": "The prosecutor and defense may engage in plea discussions. The court shall not participate in plea negotiations but may inquire about the existence of agreements."
+            },
+            "3.172": {
+                "title": "Acceptance of Guilty or Nolo Contendere Plea",
+                "category": "Arraignment and Pleas",
+                "text": "Before accepting a guilty or nolo plea, the court must determine the plea is voluntary and has factual basis. The court must inform defendant of rights being waived."
+            },
+            "3.180": {
+                "title": "Presence of Defendant",
+                "category": "Arraignment and Pleas",
+                "text": "The defendant must be present at arraignment, when a plea is made, at every stage of trial, at sentencing, and at other proceedings as required. Limited exceptions apply."
+            },
+            "3.190": {
+                "title": "Pretrial Motions",
+                "category": "Pretrial Motions and Defenses",
+                "text": "Every defense except not guilty may be made by motion. Defenses and objections must be raised before trial by motion. The rule lists specific grounds that must be raised by motion including jurisdiction, venue, and statute of limitations."
+            },
+            "3.191": {
+                "title": "Speedy Trial",
+                "category": "Pretrial Motions and Defenses",
+                "text": "Every person charged with a crime shall be brought to trial within 90 days if charged with misdemeanor or 175 days if charged with felony. Time may be extended for various reasons including unavailability of defendant or essential witness."
+            },
+            "3.200": {
+                "title": "Notice of Alibi",
+                "category": "Pretrial Motions and Defenses",
+                "text": "Upon written demand, the defendant must provide notice of intent to claim alibi including specific place defendant claims to have been and names of alibi witnesses."
+            },
+            "3.201": {
+                "title": "Notice by State of Intent to Use Similar Fact Evidence",
+                "category": "Pretrial Motions and Defenses",
+                "text": "When the state intends to use proof of other crimes, wrongs, or acts, it must give notice at least 10 days before trial describing the evidence with particularity."
+            },
+            "3.202": {
+                "title": "Expert Testimony of Mental State",
+                "category": "Pretrial Motions and Defenses",
+                "text": "When the state intends to use expert testimony about defendant's mental state, notice must be given at least 20 days before trial or as soon as practicable."
+            },
+            "3.203": {
+                "title": "Defendant's Mental State",
+                "category": "Pretrial Motions and Defenses",
+                "text": "Sets procedures for notice when defendant intends to rely on defense of insanity or claim that defendant suffered from mental infirmity affecting legal responsibility."
+            },
+            "3.210": {
+                "title": "Incompetence to Proceed: Procedure for Raising Issue",
+                "category": "Pretrial Motions and Defenses",
+                "text": "The issue of defendant's competence may be raised at any time. If reasonable grounds exist, the court shall order evaluation by experts."
+            },
+            "3.211": {
+                "title": "Competence to Proceed: Scope of Examination",
+                "category": "Pretrial Motions and Defenses",
+                "text": "Experts shall consider factors related to competence including capacity to understand proceedings and assist in defense. Written findings must be filed."
+            },
+            "3.212": {
+                "title": "Competence to Proceed: Hearing",
+                "category": "Pretrial Motions and Defenses",
+                "text": "The court must hold a hearing on competence within 20 days of filing expert reports. If defendant is incompetent, proceedings are stayed."
+            },
+            "3.213": {
+                "title": "Competence to Proceed: Hospitalization",
+                "category": "Pretrial Motions and Defenses",
+                "text": "If defendant is incompetent, the court may order hospitalization for treatment. Commitment is limited to reasonable time to determine if competence can be restored."
+            },
+            "3.215": {
+                "title": "Effect of Adjudication of Incompetence",
+                "category": "Pretrial Motions and Defenses",
+                "text": "Specifies effects of incompetence finding including tolling of speedy trial time and procedures if competence is restored."
+            },
+            "3.216": {
+                "title": "Insanity at Time of Offense",
+                "category": "Pretrial Motions and Defenses",
+                "text": "Procedures for plea of not guilty by reason of insanity including notice requirements and examination procedures."
+            },
+            "3.217": {
+                "title": "Judgment of Not Guilty by Reason of Insanity",
+                "category": "Pretrial Motions and Defenses",
+                "text": "Procedures following verdict of not guilty by reason of insanity including commitment for examination and treatment."
+            },
+            "3.218": {
+                "title": "Commitment of Defendant Found Not Guilty by Reason of Insanity",
+                "category": "Pretrial Motions and Defenses",
+                "text": "Court procedures for commitment and conditional release of defendants found not guilty by reason of insanity."
+            },
+            "3.219": {
+                "title": "Conditional Release",
+                "category": "Pretrial Motions and Defenses",
+                "text": "Procedures and criteria for conditional release of persons found not guilty by reason of insanity including supervision requirements."
+            },
+            "3.220": {
+                "title": "Discovery",
+                "category": "Pretrial Motions and Defenses",
+                "text": "Comprehensive discovery rules requiring disclosure of witness lists, statements, physical evidence, and expert reports. Reciprocal discovery obligations for prosecution and defense with specific timelines and procedures."
+            },
+            "3.230": {
+                "title": "Disqualification of Judge",
+                "category": "Substitution of Judge",
+                "text": "A judge shall not preside over any case in which the judge is prejudiced or interested. Motion to disqualify must be in writing, under oath, and filed within reasonable time not to exceed 10 days."
+            },
+            "3.240": {
+                "title": "Change of Venue",
+                "category": "Change of Venue",
+                "text": "The court may change venue on motion of any party if fair trial cannot be had in the county where the case is pending. Factors include prejudicial publicity or community prejudice."
+            },
+            "3.250": {
+                "title": "Accusation and Demand for Trial",
+                "category": "The Trial",
+                "text": "The state and defendant have the right to demand trial by jury. If no demand is made, the right is waived and trial shall be before the judge."
+            },
+            "3.260": {
+                "title": "Waiver of Jury Trial",
+                "category": "The Trial",
+                "text": "A defendant may waive jury trial with consent of the state and approval of the court. The court must determine the waiver is knowing and voluntary."
+            },
+            "3.270": {
+                "title": "Number of Jurors",
+                "category": "The Trial",
+                "text": "Twelve persons shall constitute a jury to try all capital cases. Six persons shall constitute a jury to try all other criminal cases."
+            },
+            "3.280": {
+                "title": "Alternate Jurors",
+                "category": "The Trial",
+                "text": "The court may order selection of alternate jurors. Alternates shall be drawn in the same manner and have the same qualifications as regular jurors."
+            },
+            "3.300": {
+                "title": "Voir Dire Examination",
+                "category": "The Trial",
+                "text": "The court shall conduct initial voir dire of prospective jurors. Counsel for both sides shall have reasonable opportunity to examine prospective jurors."
+            },
+            "3.310": {
+                "title": "Time for Challenge",
+                "category": "The Trial",
+                "text": "The state or defendant may challenge an individual prospective juror before the juror is sworn. The challenge shall be tried by the court."
+            },
+            "3.315": {
+                "title": "Exercise of Challenges",
+                "category": "The Trial",
+                "text": "Challenges for cause shall be unlimited. Peremptory challenges are limited based on offense type: 10 for capital cases, 6 for felonies, 3 for misdemeanors."
+            },
+            "3.320": {
+                "title": "Manner of Challenge",
+                "category": "The Trial",
+                "text": "On the motion of any party, the manner of exercising challenges may be determined by the court to expedite voir dire and protect juror privacy."
+            },
+            "3.340": {
+                "title": "Effect of Error in Overruling Challenge",
+                "category": "The Trial",
+                "text": "Error in overruling challenge for cause is harmless if party uses peremptory challenge to remove the juror, unless all peremptories are exhausted."
+            },
+            "3.350": {
+                "title": "Oath of Jurors",
+                "category": "The Trial",
+                "text": "The jurors shall take an oath to well and truly try the issues between the state and defendant according to the evidence and the law."
+            },
+            "3.360": {
+                "title": "Conduct of Jurors",
+                "category": "The Trial",
+                "text": "The court shall instruct jurors on their conduct including prohibition on discussing the case or conducting independent research."
+            },
+            "3.370": {
+                "title": "Regulation and Separation of Jurors",
+                "category": "The Trial",
+                "text": "Jurors may separate during trial except in capital cases after submission. The court may order sequestration in any case."
+            },
+            "3.380": {
+                "title": "Motion for Judgment of Acquittal",
+                "category": "The Trial",
+                "text": "After the evidence on behalf of the state is concluded, defendant may move for judgment of acquittal. The court shall grant the motion if evidence is insufficient."
+            },
+            "3.390": {
+                "title": "Jury Instructions",
+                "category": "The Trial",
+                "text": "The court shall instruct the jury on the law applicable to the case. Standard instructions shall be used when applicable. Requests must be made at close of evidence."
+            },
+            "3.400": {
+                "title": "Materials to the Jury Room",
+                "category": "Conduct of Trial; Jury Instructions",
+                "text": "The court may permit the jury to have certain materials in the jury room including verdict forms, charges, and evidence that has been admitted."
+            },
+            "3.410": {
+                "title": "Jury Request to Review Evidence",
+                "category": "Conduct of Trial; Jury Instructions",
+                "text": "After retirement, the jury may request additional instructions or to have testimony read. The court shall respond after notice to counsel."
+            },
+            "3.420": {
+                "title": "Recall of Jury",
+                "category": "Conduct of Trial; Jury Instructions",
+                "text": "The court may recall the jury after discharge to correct error in verdict form if no prejudice will result."
+            },
+            "3.430": {
+                "title": "Interview of Jurors",
+                "category": "Conduct of Trial; Jury Instructions",
+                "text": "A party may not interview jurors until the trial is concluded. The court may restrict post-trial interviews to protect juror privacy."
+            },
+            "3.440": {
+                "title": "Rendition of Verdict",
+                "category": "Conduct of Trial; Jury Instructions",
+                "text": "Verdicts shall be unanimous unless otherwise provided. The jury shall render verdict in open court. Polling is permitted on request."
+            },
+            "3.450": {
+                "title": "Polling the Jury",
+                "category": "Conduct of Trial; Jury Instructions",
+                "text": "On request, the court shall poll the jury to determine if the verdict is unanimous. If not unanimous, the jury may be sent back for further deliberation."
+            },
+            "3.470": {
+                "title": "Proceedings on Sealed Verdict",
+                "category": "Conduct of Trial; Jury Instructions",
+                "text": "When permitted by the court, the jury may seal its verdict and separate. The verdict shall be opened in court in the jury's presence."
+            },
+            "3.480": {
+                "title": "Discharge of Jurors",
+                "category": "Conduct of Trial; Jury Instructions",
+                "text": "After verdict is rendered and recorded, the jury shall be discharged. The court may order jurors not to disclose deliberations."
+            },
+            "3.500": {
+                "title": "Verdict",
+                "category": "Posttrial Motions",
+                "text": "The jury may find defendant guilty, guilty of lesser offense, or not guilty. Special verdicts may be required for certain issues."
+            },
+            "3.510": {
+                "title": "Determination of Degree of Offense",
+                "category": "Posttrial Motions",
+                "text": "When an offense has degrees, the jury shall find the degree. If no degree is found, the conviction is for the lowest degree."
+            },
+            "3.530": {
+                "title": "Reconsideration of Ambiguous Verdict",
+                "category": "Posttrial Motions",
+                "text": "If verdict is ambiguous, the court may direct reconsideration. The jury may be recalled to clarify the verdict."
+            },
+            "3.540": {
+                "title": "When Evidence Sustains Only Conviction of Lesser Offense",
+                "category": "Posttrial Motions",
+                "text": "The defendant may be found guilty of any lesser offense necessarily included in the offense charged and supported by evidence."
+            },
+            "3.550": {
+                "title": "Disposition of Defendant",
+                "category": "Posttrial Motions",
+                "text": "If verdict is not guilty, defendant shall be immediately discharged. If guilty, the court shall set sentencing."
+            },
+            "3.560": {
+                "title": "Posttrial Release",
+                "category": "Posttrial Motions",
+                "text": "The court may deny or set conditions for release pending sentencing or appeal based on specified criteria."
+            },
+            "3.570": {
+                "title": "Motion in Arrest of Judgment",
+                "category": "Posttrial Motions",
+                "text": "The court shall arrest judgment if the indictment or information does not charge a crime or if the court lacks jurisdiction."
+            },
+            "3.575": {
+                "title": "Motion to Vacate, Set Aside, or Correct",
+                "category": "Posttrial Motions",
+                "text": "Addresses motions to correct illegal sentences or sentences imposed in illegal manner."
+            },
+            "3.580": {
+                "title": "Court May Grant New Trial",
+                "category": "Posttrial Motions",
+                "text": "When a verdict has been rendered against defendant, the court may grant new trial on motion or its own initiative."
+            },
+            "3.590": {
+                "title": "Motion for New Trial; Grounds",
+                "category": "Posttrial Motions",
+                "text": "New trial may be granted for: jury receiving evidence out of court, jury misconduct, prosecutorial misconduct, new evidence, verdict contrary to law or weight of evidence."
+            },
+            "3.700": {
+                "title": "Sentence Defined; Pronouncement and Entry",
+                "category": "Sentencing",
+                "text": "Sentence is the pronouncement by the court of the penalty imposed. Sentencing shall be conducted in open court and entered in the minutes."
+            },
+            "3.701": {
+                "title": "Sentencing Guidelines",
+                "category": "Sentencing",
+                "text": "The court shall consider applicable sentencing guidelines. Departure from guidelines requires written reasons."
+            },
+            "3.703": {
+                "title": "Sentencing Hearing",
+                "category": "Sentencing",
+                "text": "Prior to sentencing, the court shall conduct a hearing. The defendant shall be present and have opportunity for allocution."
+            },
+            "3.710": {
+                "title": "Presentence Report",
+                "category": "Sentencing",
+                "text": "The court may order a presentence investigation. The report shall include criminal history, circumstances of offense, victim impact, and sentencing recommendations."
+            },
+            "3.711": {
+                "title": "Presentence Report; When Prepared",
+                "category": "Sentencing",
+                "text": "Presentence reports shall be prepared in all felony cases unless waived. Reports are mandatory for certain offenses."
+            },
+            "3.712": {
+                "title": "Presentence Report; Disclosure",
+                "category": "Sentencing",
+                "text": "The presentence report shall be disclosed to parties before sentencing. Objections must be filed before the hearing."
+            },
+            "3.720": {
+                "title": "Sentencing Hearing for Capital Cases",
+                "category": "Sentencing",
+                "text": "Special procedures for sentencing in capital cases including jury recommendation on death penalty and required findings by the court."
+            },
+            "3.780": {
+                "title": "Sentencing Hearing for Offenses Prior to October 1, 1983",
+                "category": "Sentencing",
+                "text": "Procedures for sentencing under prior law for offenses committed before the effective date of sentencing guidelines."
+            },
+            "3.790": {
+                "title": "Probation and Community Control",
+                "category": "Sentencing",
+                "text": "Procedures for placement on probation or community control including conditions and revocation proceedings."
+            },
+            "3.800": {
+                "title": "Correction, Reduction, and Modification of Sentences",
+                "category": "Sentencing",
+                "text": "Court may correct illegal sentence at any time. Court may reduce or modify legal sentence within 60 days. Includes procedures for correcting jail credit."
+            },
+            "3.801": {
+                "title": "Correction of Jail Credit",
+                "category": "Sentencing",
+                "text": "Defendant is entitled to credit for time served. Motion to correct credit may be filed at any time."
+            },
+            "3.810": {
+                "title": "Commitment of Defendant; Duty of Sheriff",
+                "category": "Execution of Sentence",
+                "text": "When defendant is sentenced to incarceration, the court shall issue commitment. The sheriff shall execute the commitment and deliver defendant."
+            },
+            "3.820": {
+                "title": "Habeas Corpus",
+                "category": "Execution of Sentence",
+                "text": "Procedures for habeas corpus proceedings to challenge illegal detention. Includes requirements for petition and hearing procedures."
+            },
+            "3.830": {
+                "title": "Direct Criminal Contempt",
+                "category": "Criminal Contempt",
+                "text": "Summary punishment may be imposed for contempt committed in the presence of the court. Maximum penalty is 6 months jail and/or $500 fine."
+            },
+            "3.840": {
+                "title": "Indirect Criminal Contempt",
+                "category": "Criminal Contempt",
+                "text": "Contempt not in court's presence requires notice and hearing. Defendant has right to counsel and jury trial if penalty exceeds 6 months."
+            },
+            "3.850": {
+                "title": "Motion to Vacate, Set Aside, or Correct Sentence",
+                "category": "Postconviction Relief",
+                "text": "Procedures for collateral attack on conviction or sentence. Must be filed within 2 years of final judgment with limited exceptions. Court must grant hearing unless motion is legally insufficient."
+            },
+            "3.851": {
+                "title": "Collateral Relief After Death Sentence",
+                "category": "Postconviction Relief",
+                "text": "Special procedures for postconviction relief in death penalty cases including time limits, appointment of counsel, and evidentiary hearings."
+            },
+            "3.852": {
+                "title": "Capital Postconviction Public Records Production",
+                "category": "Postconviction Relief",
+                "text": "Procedures for obtaining public records in capital postconviction proceedings. Requires agencies to provide records within specified time limits."
+            },
+            "3.853": {
+                "title": "Motion for Postconviction DNA Testing",
+                "category": "Postconviction Relief",
+                "text": "Procedures to obtain DNA testing of evidence that may exonerate defendant. Requires showing that testing may produce exculpatory evidence."
+            },
+            "3.984": {
+                "title": "Application for Criminal Indigent Status",
+                "category": "Forms",
+                "text": "Standard form for determining eligibility for appointed counsel based on financial resources and obligations."
+            },
+            "3.985": {
+                "title": "Standard Jury Instructions",
+                "category": "Forms",
+                "text": "Forms for standard jury instructions approved by the Florida Supreme Court for use in criminal trials."
+            },
+            "3.986": {
+                "title": "Forms for Use with Rules",
+                "category": "Forms",
+                "text": "Standard forms for motions, orders, and other documents used in criminal proceedings."
+            },
+            "3.987": {
+                "title": "Motion for Postconviction Relief",
+                "category": "Forms",
+                "text": "Standard form for filing motion under rule 3.850 for postconviction relief."
+            },
+            "3.988": {
+                "title": "Sentencing Guidelines Scoresheet",
+                "category": "Forms",
+                "text": "Form for calculating sentencing guidelines score based on offense severity and criminal history."
+            },
+            "3.989": {
+                "title": "Affidavit, Petition, and Order to Expunge or Seal",
+                "category": "Forms",
+                "text": "Forms for seeking expungement or sealing of criminal records when eligible under Florida law."
+            },
+            "3.990": {
+                "title": "Sentencing Guidelines Departure Form",
+                "category": "Forms",
+                "text": "Form for documenting reasons for departure from sentencing guidelines."
+            },
+            "3.991": {
+                "title": "Criminal Punishment Code Scoresheet",
+                "category": "Forms",
+                "text": "Updated scoresheet form for offenses committed under the Criminal Punishment Code."
+            },
+            "3.992": {
+                "title": "Criminal Punishment Code Supplemental Scoresheet",
+                "category": "Forms",
+                "text": "Additional scoresheet for multiple offenses or enhancements under Criminal Punishment Code."
+            },
+            "3.993": {
+                "title": "Forms for Capital Cases",
+                "category": "Forms",
+                "text": "Specialized forms for use in death penalty cases including verdict forms and sentencing orders."
+            },
+            "3.994": {
+                "title": "Order of Probation",
+                "category": "Forms",
+                "text": "Standard form for placing defendant on probation with standard and special conditions."
+            },
+            "3.996": {
+                "title": "Forms Related to Competency",
+                "category": "Forms",
+                "text": "Forms for competency evaluations, commitment orders, and restoration proceedings."
+            }
+        };
+
+        // Initialize the application
+        function init() {
+            populateRuleSelector();
+            renderBrowseContent();
+            setupSearch();
+        }
+
+        // Tab switching functionality
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Hide all tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Highlight selected tab button
+            event.target.classList.add('active');
+        }
+
+        // Populate rule selector dropdown
+        function populateRuleSelector() {
+            const selector = document.getElementById('ruleSelector');
+            const sortedRules = Object.keys(rules).sort((a, b) => {
+                const numA = parseFloat(a);
+                const numB = parseFloat(b);
+                return numA - numB;
+            });
+            
+            sortedRules.forEach(ruleNum => {
+                const option = document.createElement('option');
+                option.value = ruleNum;
+                option.textContent = `Rule ${ruleNum}: ${rules[ruleNum].title}`;
+                selector.appendChild(option);
+            });
+            
+            selector.addEventListener('change', function() {
+                if (this.value) {
+                    showRuleDetail(this.value);
+                } else {
+                    document.getElementById('allContent').innerHTML = '';
+                }
+            });
+        }
+
+        // Show individual rule detail
+        function showRuleDetail(ruleNum) {
+            const rule = rules[ruleNum];
+            const content = document.getElementById('allContent');
+            
+            content.innerHTML = `
+                <div class="rule-card">
+                    <div class="rule-number">Rule ${ruleNum}</div>
+                    <div class="rule-title">${rule.title}</div>
+                    <div class="rule-category">Category: ${rule.category}</div>
+                    <div class="rule-text">${rule.text}</div>
+                </div>
+            `;
+        }
+
+        // Render browse content by categories
+        function renderBrowseContent() {
+            const container = document.getElementById('browseContent');
+            let html = '';
+            
+            Object.entries(categories).forEach(([categoryName, ruleNumbers]) => {
+                html += `
+                    <div class="category">
+                        <div class="category-header" onclick="toggleCategory(this)">
+                            ${categoryName} (${ruleNumbers.length} rules) ▼
+                        </div>
+                        <div class="category-content">
+                `;
+                
+                ruleNumbers.forEach(ruleNum => {
+                    if (rules[ruleNum]) {
+                        const rule = rules[ruleNum];
+                        html += `
+                            <div class="rule-card">
+                                <div class="rule-number">Rule ${ruleNum}</div>
+                                <div class="rule-title">${rule.title}</div>
+                                <div class="rule-text">${rule.text}</div>
+                            </div>
+                        `;
+                    }
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Toggle category expansion
+        function toggleCategory(header) {
+            const content = header.nextElementSibling;
+            const isExpanded = content.classList.contains('expanded');
+            
+            if (isExpanded) {
+                content.classList.remove('expanded');
+                header.innerHTML = header.innerHTML.replace('▲', '▼');
+            } else {
+                content.classList.add('expanded');
+                header.innerHTML = header.innerHTML.replace('▼', '▲');
+            }
+        }
+
+        // Search functionality
+        function setupSearch() {
+            const searchInput = document.getElementById('searchInput');
+            let searchTimeout;
+            
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    performSearch(this.value);
+                }, 300);
+            });
+        }
+
+        // Perform search
+        function performSearch(query) {
+            if (!query.trim()) {
+                renderBrowseContent();
+                return;
+            }
+            
+            const results = filterRules(query);
+            renderSearchResults(results, query);
+        }
+
+        // Filter rules based on search query
+        function filterRules(query) {
+            const queryLower = query.toLowerCase();
+            const filtered = {};
+            
+            Object.entries(rules).forEach(([ruleNum, ruleData]) => {
+                if (ruleNum.toLowerCase().includes(queryLower) ||
+                    ruleData.title.toLowerCase().includes(queryLower) ||
+                    ruleData.text.toLowerCase().includes(queryLower)) {
+                    filtered[ruleNum] = ruleData;
+                }
+            });
+            
+            return filtered;
+        }
+
+        // Render search results
+        function renderSearchResults(results, query) {
+            const container = document.getElementById('browseContent');
+            const resultCount = Object.keys(results).length;
+            
+            if (resultCount === 0) {
+                container.innerHTML = '<div class="no-results">No rules found matching your search.</div>';
+                return;
+            }
+            
+            let html = `<div class="results-count">Found ${resultCount} rules matching "${query}"</div>`;
+            
+            // Group results by category
+            Object.entries(categories).forEach(([categoryName, ruleNumbers]) => {
+                const categoryResults = {};
+                ruleNumbers.forEach(ruleNum => {
+                    if (results[ruleNum]) {
+                        categoryResults[ruleNum] = results[ruleNum];
+                    }
+                });
+                
+                if (Object.keys(categoryResults).length > 0) {
+                    html += `
+                        <div class="category">
+                            <div class="category-header">${categoryName}</div>
+                            <div class="category-content expanded">
+                    `;
+                    
+                    Object.entries(categoryResults).forEach(([ruleNum, ruleData]) => {
+                        html += `
+                            <div class="rule-card">
+                                <div class="rule-number">Rule ${ruleNum}</div>
+                                <div class="rule-title">${highlightSearch(ruleData.title, query)}</div>
+                                <div class="rule-text">${highlightSearch(ruleData.text, query)}</div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += '</div></div>';
+                }
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Highlight search terms
+        function highlightSearch(text, query) {
+            if (!query) return text;
+            
+            const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+            return text.replace(regex, '<span class="search-highlight">$1</span>');
+        }
+
+        // Initialize the application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
 </html>
