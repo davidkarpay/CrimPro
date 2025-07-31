@@ -1016,6 +1016,11 @@
             `;
         }
 
+        // Helper function for proper grammar (singular/plural)
+        function getRuleCountText(count) {
+            return count === 1 ? '1 rule' : `${count} rules`;
+        }
+
         // Render browse content by categories
         function renderBrowseContent() {
             const container = document.getElementById('browseContent');
@@ -1025,7 +1030,7 @@
                 html += `
                     <div class="category">
                         <div class="category-header" onclick="toggleCategory(this)">
-                            ${categoryName} (${ruleNumbers.length} rules) ▼
+                            ${categoryName} (${getRuleCountText(ruleNumbers.length)}) ▼
                         </div>
                         <div class="category-content">
                 `;
@@ -1116,7 +1121,7 @@
                 return;
             }
             
-            let html = `<div class="results-count">Found ${resultCount} rules matching "${query}"</div>`;
+            let html = `<div class="results-count">Found ${getRuleCountText(resultCount)} matching "${query}"</div>`;
             
             // Group results by category
             Object.entries(categories).forEach(([categoryName, ruleNumbers]) => {
