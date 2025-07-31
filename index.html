@@ -343,23 +343,26 @@
     </div>
 
     <script>
-        // Define categories and rules data
+        // Define categories and rules data (active rules only - repealed rules removed)
         const categories = {
             "Scope, Purpose and Construction": ["3.010", "3.020", "3.025"],
-            "General Provisions": ["3.030", "3.040", "3.050", "3.060", "3.070", "3.080", "3.090", "3.100", "3.110", "3.111", "3.112", "3.113", "3.115", "3.116"],
-            "Preliminary Proceedings": ["3.120", "3.121", "3.125", "3.130", "3.131", "3.132", "3.133", "3.134", "3.140", "3.141", "3.142", "3.150", "3.151", "3.152"],
-            "Arraignment and Pleas": ["3.160", "3.170", "3.171", "3.172", "3.180"],
-            "Pretrial Motions and Defenses": ["3.190", "3.191", "3.200", "3.201", "3.202", "3.203", "3.210", "3.211", "3.212", "3.213", "3.215", "3.216", "3.217", "3.218", "3.219", "3.220"],
+            "General Provisions": ["3.030", "3.040", "3.050", "3.060", "3.080", "3.090", "3.111", "3.112", "3.113", "3.115", "3.116"],
+            "Preliminary Proceedings": ["3.120", "3.121", "3.125", "3.130", "3.131", "3.132", "3.133", "3.134", "3.140", "3.150", "3.151", "3.152", "3.153"],
+            "Arraignment and Pleas": ["3.160", "3.170", "3.171", "3.172", "3.180", "3.181"],
+            "Pretrial Motions and Defenses": ["3.190", "3.191", "3.192", "3.200", "3.201", "3.202", "3.203", "3.210", "3.211", "3.212", "3.213", "3.214", "3.215", "3.216", "3.217", "3.218", "3.219"],
+            "Discovery": ["3.220"],
+            "Substitution of Judge": ["3.231"],
             "Change of Venue": ["3.240"],
-            "Substitution of Judge": ["3.230"],
-            "The Trial": ["3.250", "3.260", "3.270", "3.280", "3.300", "3.310", "3.315", "3.320", "3.340", "3.350", "3.360", "3.370", "3.380", "3.390"],
-            "Conduct of Trial; Jury Instructions": ["3.400", "3.410", "3.420", "3.430", "3.440", "3.450", "3.470", "3.480"],
-            "Posttrial Motions": ["3.500", "3.510", "3.530", "3.540", "3.550", "3.560", "3.570", "3.575", "3.580", "3.590"],
-            "Sentencing": ["3.700", "3.701", "3.703", "3.710", "3.711", "3.712", "3.720", "3.780", "3.790", "3.800", "3.801"],
-            "Execution of Sentence": ["3.810", "3.820"],
+            "The Trial": ["3.250", "3.251", "3.260", "3.270", "3.280", "3.281", "3.290", "3.300", "3.310", "3.315", "3.320", "3.330", "3.340", "3.350", "3.360", "3.361"],
+            "Conduct of Trial; Jury Instructions": ["3.370", "3.371", "3.372", "3.380", "3.381", "3.390", "3.391", "3.400", "3.410", "3.420", "3.430"],
+            "The Verdict": ["3.440", "3.450", "3.451", "3.470", "3.490", "3.500", "3.505", "3.510", "3.520", "3.530", "3.540", "3.550", "3.560", "3.570", "3.575"],
+            "Post-Trial Motions": ["3.580", "3.590", "3.600", "3.610", "3.620", "3.630", "3.640"],
+            "Judgment": ["3.650", "3.670", "3.680", "3.690", "3.691", "3.692", "3.693", "3.694"],
+            "Sentence": ["3.700", "3.701", "3.702", "3.703", "3.704", "3.710", "3.711", "3.712", "3.713", "3.720", "3.721", "3.730", "3.750", "3.760", "3.770", "3.780", "3.781", "3.790", "3.800", "3.801", "3.802"],
+            "Execution of Sentence": ["3.810", "3.811", "3.812", "3.820"],
             "Criminal Contempt": ["3.830", "3.840"],
             "Postconviction Relief": ["3.850", "3.851", "3.852", "3.853"],
-            "Forms": ["3.984", "3.985", "3.986", "3.987", "3.988", "3.989", "3.990", "3.991", "3.992", "3.993", "3.994", "3.996"]
+            "Forms": ["3.984", "3.9855", "3.986", "3.987", "3.9875", "3.9876", "3.988", "3.989", "3.9895", "3.990", "3.991", "3.992", "3.993", "3.994", "3.995", "3.996"]
         };
 
         const rules = {
@@ -398,11 +401,6 @@
                 "category": "General Provisions",
                 "text": "Unless otherwise required, every motion must be served at least 5 days before the hearing. A copy of any written motion not served with the notice must accompany the notice of hearing."
             },
-            "3.070": {
-                "title": "Additional Time After Service by Mail or E-mail",
-                "category": "General Provisions",
-                "text": "When service is by mail or e-mail, 5 days are added to the prescribed period. This extension does not apply to service of process or when a different time is prescribed by court order."
-            },
             "3.080": {
                 "title": "Nonverification of Pleadings",
                 "category": "General Provisions",
@@ -412,16 +410,6 @@
                 "title": "Pleading Captions",
                 "category": "General Provisions",
                 "text": "Every pleading, motion, order, judgment, or other document must have a caption containing the name of the court, file number, and a designation identifying the party filing it and its nature."
-            },
-            "3.100": {
-                "title": "Attorney Not to Be Surety",
-                "category": "General Provisions",
-                "text": "No attorney of record in a case may act as surety for any defendant in the same case."
-            },
-            "3.110": {
-                "title": "Televising, Photographing, Radio Broadcasting of Judicial Proceedings",
-                "category": "General Provisions",
-                "text": "Electronic media and still photography coverage of judicial proceedings is subject to the standards of conduct and technology in Florida Rule of General Practice and Judicial Administration 2.450."
             },
             "3.111": {
                 "title": "Providing Counsel to Indigents",
@@ -620,13 +608,13 @@
             },
             "3.220": {
                 "title": "Discovery",
-                "category": "Pretrial Motions and Defenses",
+                "category": "Discovery",
                 "text": "Comprehensive discovery rules requiring disclosure of witness lists, statements, physical evidence, and expert reports. Reciprocal discovery obligations for prosecution and defense with specific timelines and procedures."
             },
-            "3.230": {
-                "title": "Disqualification of Judge",
+            "3.231": {
+                "title": "Substitution of Judge",
                 "category": "Substitution of Judge",
-                "text": "A judge shall not preside over any case in which the judge is prejudiced or interested. Motion to disqualify must be in writing, under oath, and filed within reasonable time not to exceed 10 days."
+                "text": "Governs procedures for substitution of judge, including grounds for disqualification and assignment of successor judge."
             },
             "3.240": {
                 "title": "Change of Venue",
@@ -893,11 +881,6 @@
                 "category": "Forms",
                 "text": "Standard form for determining eligibility for appointed counsel based on financial resources and obligations."
             },
-            "3.985": {
-                "title": "Standard Jury Instructions",
-                "category": "Forms",
-                "text": "Forms for standard jury instructions approved by the Florida Supreme Court for use in criminal trials."
-            },
             "3.986": {
                 "title": "Forms for Use with Rules",
                 "category": "Forms",
@@ -1009,11 +992,62 @@
             content.innerHTML = `
                 <div class="rule-card">
                     <div class="rule-number">Rule ${ruleNum}</div>
-                    <div class="rule-title">${rule.title}</div>
+                    <div class="rule-title">
+                        <a href="#rule-${ruleNum}" onclick="showDetailedRule('${ruleNum}')" style="color: #0068c9; text-decoration: none;">${rule.title}</a>
+                    </div>
                     <div class="rule-category">Category: ${rule.category}</div>
                     <div class="rule-text">${rule.text}</div>
+                    <div style="margin-top: 1rem;">
+                        <a href="#rule-${ruleNum}" onclick="showDetailedRule('${ruleNum}')" style="background: #0068c9; color: white; padding: 0.5rem 1rem; border-radius: 4px; text-decoration: none; font-size: 0.9rem;">View Full Rule Text</a>
+                    </div>
                 </div>
             `;
+        }
+
+        // Show detailed rule page with complete text
+        function showDetailedRule(ruleNum) {
+            const rule = rules[ruleNum];
+            if (!rule) return;
+            
+            // Create detailed rule page content
+            const detailedContent = `
+                <div style="max-width: 800px; margin: 0 auto; padding: 2rem; background: white; border-radius: 8px;">
+                    <div style="margin-bottom: 2rem;">
+                        <button onclick="history.back()" style="background: #f0f2f6; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; margin-bottom: 1rem;">← Back</button>
+                    </div>
+                    
+                    <div style="border-bottom: 2px solid #0068c9; padding-bottom: 1rem; margin-bottom: 2rem;">
+                        <h1 style="color: #0068c9; font-size: 2rem; margin-bottom: 0.5rem;">Rule ${ruleNum}</h1>
+                        <h2 style="color: #333; font-size: 1.5rem; margin-bottom: 1rem;">${rule.title}</h2>
+                        <div style="color: #666; font-style: italic;">Category: ${rule.category}</div>
+                    </div>
+                    
+                    <div style="line-height: 1.8; font-size: 1.1rem; margin-bottom: 2rem;">
+                        <h3 style="color: #0068c9; margin-bottom: 1rem;">Rule Text:</h3>
+                        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 6px; border-left: 4px solid #0068c9;">
+                            ${rule.text}
+                        </div>
+                        
+                        <div style="margin-top: 2rem; padding: 1rem; background: #fff3cd; border-radius: 6px; border-left: 4px solid #ffc107;">
+                            <strong>Note:</strong> This is a summary for reference purposes. For the complete official text, committee notes, and annotations, please refer to the 
+                            <a href="https://www-media.floridabar.org/uploads/2025/07/2025.07.10-Criminal-Procedure-Rules.pdf" target="_blank" style="color: #0068c9;">official Florida Rules of Criminal Procedure PDF</a>.
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; color: #666; font-size: 0.9rem; border-top: 1px solid #e1e4e8; padding-top: 1rem;">
+                        <p>Florida Rules of Criminal Procedure | Last Updated: July 10, 2025</p>
+                        <p><a href="https://www-media.floridabar.org/uploads/2025/07/2025.07.10-Criminal-Procedure-Rules.pdf" target="_blank" style="color: #0068c9;">📄 View Official PDF</a></p>
+                    </div>
+                </div>
+            `;
+            
+            // Replace the entire page content with the detailed rule
+            document.body.innerHTML = detailedContent;
+            
+            // Update URL without page reload
+            if (history.pushState) {
+                history.pushState({ruleNum: ruleNum}, `Rule ${ruleNum} - ${rule.title}`, `#rule-${ruleNum}`);
+            }
         }
 
         // Helper function for proper grammar (singular/plural)
