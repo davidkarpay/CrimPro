@@ -18,7 +18,8 @@
       "Bash(curl:*)",
       "Bash(git commit:*)",
       "Bash(rm:*)",
-      "WebFetch(domain:www.courtlistener.com)"
+      "WebFetch(domain:www.courtlistener.com)",
+      "Bash(start test_api.html)"
     ],
     "deny": []
   }
