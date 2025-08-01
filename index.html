@@ -1412,6 +1412,15 @@
             loadSavedApiToken();
         }
 
+        // Navigation function to return to main page
+        function goBackToMain() {
+            // Clear any detailed content
+            document.getElementById('allContent').innerHTML = '';
+            
+            // Show the main tab interface (default to Browse by Category)
+            showTab('browse');
+        }
+
         // Tab switching functionality
         function showTab(tabName) {
             // Hide all tab contents
@@ -1651,7 +1660,7 @@
             const detailedContent = `
                 <div style="max-width: 900px; margin: 0 auto; padding: 2rem; background: white; border-radius: 8px;">
                     <div style="margin-bottom: 2rem;">
-                        <button onclick="history.back()" style="background: #f0f2f6; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; margin-bottom: 1rem;">← Back</button>
+                        <button onclick="goBackToMain()" style="background: #f0f2f6; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; margin-bottom: 1rem;">← Back</button>
                     </div>
                     
                     <div style="border-bottom: 2px solid #0068c9; padding-bottom: 1rem; margin-bottom: 2rem;">
