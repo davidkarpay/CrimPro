@@ -399,11 +399,15 @@
             apiToken: 'YOUR_COURTLISTENER_API_TOKEN_HERE',
             floridaCourts: {
                 // Florida Supreme Court
-                'flsupr': 'Florida Supreme Court',
-                // Florida District Courts of Appeal  
-                'fladistctapp': 'Florida District Courts of Appeal',
-                // Florida Circuit Courts would need specific court IDs
-                // These would be populated after querying the courts API
+                'fla': 'Supreme Court of Florida',
+                // Florida District Courts of Appeal (combined)
+                'fladistctapp': 'District Court of Appeal of Florida',
+                // Individual DCAs (currently inactive in CourtListener but listed for reference)
+                'fladistctapp1': 'Florida First District Court of Appeal',
+                'fladistctapp2': 'Florida Second District Court of Appeal',
+                'fladistctapp3': 'Florida Third District Court of Appeal',
+                'fladistctapp4': 'Florida Fourth District Court of Appeal',
+                'fladistctapp5': 'Florida Fifth District Court of Appeal'
             },
             rateLimit: {
                 maxRequests: 100, // CourtListener's typical rate limit
@@ -543,30 +547,33 @@
             // Search for cases related to a specific criminal procedure rule
             async searchCasesForRule(ruleNumber, ruleTitle) {
                 try {
-                    // Try multiple search approaches to find relevant cases
+                    // Search specifically in Florida state courts
+                    const floridaCourts = ['fla', 'fladistctapp']; // Florida Supreme Court and DCAs
                     const searchTerms = [
-                        `Florida Rule Criminal Procedure ${ruleNumber}`,
-                        `Fla R Crim P ${ruleNumber}`,
-                        `Rule ${ruleNumber} criminal procedure`
+                        `"Florida Rule of Criminal Procedure ${ruleNumber}"`,
+                        `"Fla. R. Crim. P. ${ruleNumber}"`,
+                        `"Rule ${ruleNumber}"`
                     ];
 
                     let allResults = [];
 
-                    for (const searchTerm of searchTerms) {
-                        try {
-                            const result = await this.makeRequest('/opinions/', {
-                                q: searchTerm,
-                                court__jurisdiction: 'FL', // Florida jurisdiction filter
-                                ordering: '-cluster__date_filed',
-                                status: 'Published',
-                                page_size: 10
-                            });
+                    // Search each court for each term
+                    for (const courtId of floridaCourts) {
+                        for (const searchTerm of searchTerms) {
+                            try {
+                                const result = await this.makeRequest('/opinions/', {
+                                    q: searchTerm,
+                                    court: courtId, // Specific Florida court ID
+                                    ordering: '-cluster__date_filed',
+                                    page_size: 5
+                                });
 
-                            if (result && result.results) {
-                                allResults = allResults.concat(result.results);
+                                if (result && result.results) {
+                                    allResults = allResults.concat(result.results);
+                                }
+                            } catch (searchError) {
+                                console.warn(`Search failed for term "${searchTerm}" in court ${courtId}:`, searchError);
                             }
-                        } catch (searchError) {
-                            console.warn(`Search failed for term "${searchTerm}":`, searchError);
                         }
                     }
 
@@ -574,10 +581,14 @@
                     const uniqueCases = new Map();
                     allResults.forEach(opinion => {
                         if (!uniqueCases.has(opinion.id)) {
+                            const courtName = opinion.cluster?.court_citation_string || 
+                                           opinion.cluster?.court || 
+                                           'Florida Court';
+                            
                             uniqueCases.set(opinion.id, {
                                 id: opinion.id,
                                 caseName: opinion.case_name || opinion.cluster?.case_name || 'Unknown Case',
-                                court: opinion.cluster?.court || 'Unknown Court',
+                                court: courtName,
                                 dateFiled: opinion.cluster?.date_filed,
                                 absolute_url: opinion.absolute_url,
                                 download_url: opinion.download_url,
@@ -586,8 +597,15 @@
                         }
                     });
 
+                    // Filter to ensure only Florida cases and sort by date
                     return Array.from(uniqueCases.values())
-                        .sort((a, b) => new Date(b.dateFiled) - new Date(a.dateFiled))
+                        .filter(case_ => {
+                            const courtLower = case_.court.toLowerCase();
+                            return courtLower.includes('fla') || 
+                                   courtLower.includes('florida') ||
+                                   courtLower.includes('dist. ct. app.');
+                        })
+                        .sort((a, b) => new Date(b.dateFiled || 0) - new Date(a.dateFiled || 0))
                         .slice(0, 10);
 
                 } catch (error) {
