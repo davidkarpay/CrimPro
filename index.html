@@ -547,66 +547,83 @@
             // Search for cases related to a specific criminal procedure rule
             async searchCasesForRule(ruleNumber, ruleTitle) {
                 try {
-                    // Search specifically in Florida state courts
-                    const floridaCourts = ['fla', 'fladistctapp']; // Florida Supreme Court and DCAs
+                    // Use broad search since court filtering appears unreliable in CourtListener
                     const searchTerms = [
                         `"Florida Rule of Criminal Procedure ${ruleNumber}"`,
                         `"Fla. R. Crim. P. ${ruleNumber}"`,
-                        `"Rule ${ruleNumber}"`
+                        `"Florida Rules of Criminal Procedure" AND "${ruleNumber}"`
                     ];
 
                     let allResults = [];
 
-                    // Search each court for each term
-                    for (const courtId of floridaCourts) {
-                        for (const searchTerm of searchTerms) {
-                            try {
-                                const result = await this.makeRequest('/opinions/', {
-                                    q: searchTerm,
-                                    court: courtId, // Specific Florida court ID
-                                    ordering: '-cluster__date_filed',
-                                    page_size: 5
-                                });
+                    // Search without court filter, then filter results manually
+                    for (const searchTerm of searchTerms) {
+                        try {
+                            const result = await this.makeRequest('/opinions/', {
+                                q: searchTerm,
+                                ordering: '-cluster__date_filed',
+                                page_size: 20
+                            });
 
-                                if (result && result.results) {
-                                    allResults = allResults.concat(result.results);
-                                }
-                            } catch (searchError) {
-                                console.warn(`Search failed for term "${searchTerm}" in court ${courtId}:`, searchError);
+                            if (result && result.results) {
+                                allResults = allResults.concat(result.results);
                             }
+                        } catch (searchError) {
+                            console.warn(`Search failed for term "${searchTerm}":`, searchError);
                         }
                     }
 
-                    // Deduplicate by ID and format results
+                    // Deduplicate and aggressively filter for Florida cases only
                     const uniqueCases = new Map();
                     allResults.forEach(opinion => {
                         if (!uniqueCases.has(opinion.id)) {
-                            const courtName = opinion.cluster?.court_citation_string || 
-                                           opinion.cluster?.court || 
-                                           'Florida Court';
+                            // Get case text for analysis
+                            const fullText = (opinion.plain_text || '').toLowerCase();
+                            const caseName = (opinion.case_name || opinion.cluster?.case_name || '').toLowerCase();
                             
-                            uniqueCases.set(opinion.id, {
-                                id: opinion.id,
-                                caseName: opinion.case_name || opinion.cluster?.case_name || 'Unknown Case',
-                                court: courtName,
-                                dateFiled: opinion.cluster?.date_filed,
-                                absolute_url: opinion.absolute_url,
-                                download_url: opinion.download_url,
-                                snippet: opinion.plain_text ? opinion.plain_text.substring(0, 300) + '...' : null
-                            });
+                            // Strict Florida filtering - must contain Florida indicators AND exclude non-Florida indicators
+                            const hasFloridaIndicators = 
+                                fullText.includes('florida') ||
+                                fullText.includes('fla.') ||
+                                fullText.includes('f.supp') ||
+                                fullText.includes('so.2d') ||
+                                fullText.includes('so.3d') ||
+                                caseName.includes('florida') ||
+                                caseName.includes('state of florida');
+                            
+                            const hasNonFloridaIndicators = 
+                                fullText.includes('colorado') ||
+                                fullText.includes('colo.') ||
+                                fullText.includes('p.2d') ||
+                                fullText.includes('p.3d') ||
+                                fullText.includes('c.r.s.') ||
+                                fullText.includes('colorado court') ||
+                                caseName.includes('colorado') ||
+                                caseName.includes('people v.');
+                            
+                            // Only include if has Florida indicators and no non-Florida indicators
+                            if (hasFloridaIndicators && !hasNonFloridaIndicators) {
+                                const courtName = opinion.cluster?.court_citation_string || 
+                                               opinion.cluster?.court || 
+                                               'Florida Court';
+                                
+                                uniqueCases.set(opinion.id, {
+                                    id: opinion.id,
+                                    caseName: opinion.case_name || opinion.cluster?.case_name || 'Unknown Case',
+                                    court: courtName,
+                                    dateFiled: opinion.cluster?.date_filed,
+                                    absolute_url: opinion.absolute_url,
+                                    download_url: opinion.download_url,
+                                    snippet: opinion.plain_text ? opinion.plain_text.substring(0, 300) + '...' : null
+                                });
+                            }
                         }
                     });
 
-                    // Filter to ensure only Florida cases and sort by date
+                    // Sort by date and return top results
                     return Array.from(uniqueCases.values())
-                        .filter(case_ => {
-                            const courtLower = case_.court.toLowerCase();
-                            return courtLower.includes('fla') || 
-                                   courtLower.includes('florida') ||
-                                   courtLower.includes('dist. ct. app.');
-                        })
                         .sort((a, b) => new Date(b.dateFiled || 0) - new Date(a.dateFiled || 0))
-                        .slice(0, 10);
+                        .slice(0, 8);
 
                 } catch (error) {
                     console.error(`Error searching cases for Rule ${ruleNumber}:`, error);
