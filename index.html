@@ -752,7 +752,7 @@
             
             try {
                 // Test the connection by making a simple API call to the courts endpoint
-                const response = await fetch(`${COURTLISTENER_CONFIG.baseUrl}/courts/?jurisdiction=FL&page_size=5`, {
+                const response = await fetch(`${COURTLISTENER_CONFIG.baseUrl}/courts/?page_size=5`, {
                     headers: {
                         'Authorization': `Token ${token}`,
                         'Content-Type': 'application/json'
