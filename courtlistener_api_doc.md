@@ -1,9 +1,11 @@
 ---
+title: CourtListener API Integration Reference
+description: Documentation for CourtListener's API, webhooks, and integration pages
+---
+
 # CourtListener API Integration Reference for Claude Code
 
-This document unifies the relevant documentation from CourtListener’s API, webhooks, and integration pages to assist in building or debugging your application that interfaces with CourtListener’s REST API.
-
----
+This document unifies the relevant documentation from CourtListener's API, webhooks, and integration pages to assist in building or debugging your application that interfaces with CourtListener's REST API.
 
 ## 1. API Authentication
 
