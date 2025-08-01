@@ -521,7 +521,7 @@
                     const response = await fetch(url.toString(), {
                         headers: {
                             'Authorization': `Token ${this.config.apiToken}`,
-                            'Content-Type': 'application/json'
+                            'Accept': 'application/json'
                         }
                     });
 
@@ -755,7 +755,7 @@
                 const response = await fetch(`${COURTLISTENER_CONFIG.baseUrl}/courts/?page_size=5`, {
                     headers: {
                         'Authorization': `Token ${token}`,
-                        'Content-Type': 'application/json'
+                        'Accept': 'application/json'
                     }
                 });
                 
