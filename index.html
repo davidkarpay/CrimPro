@@ -1702,8 +1702,13 @@
                         html += `
                             <div class="rule-card">
                                 <div class="rule-number">Rule ${ruleNum}</div>
-                                <div class="rule-title">${rule.title}</div>
+                                <div class="rule-title">
+                                    <a href="#rule-${ruleNum}" onclick="showDetailedRule('${ruleNum}')" style="color: #0068c9; text-decoration: none;">${rule.title}</a>
+                                </div>
                                 <div class="rule-text">${rule.text}</div>
+                                <div style="margin-top: 1rem;">
+                                    <a href="#rule-${ruleNum}" onclick="showDetailedRule('${ruleNum}')" style="background: #0068c9; color: white; padding: 0.5rem 1rem; border-radius: 4px; text-decoration: none; font-size: 0.9rem;">View Full Rule Text</a>
+                                </div>
                             </div>
                         `;
                     }
@@ -1804,8 +1809,13 @@
                         html += `
                             <div class="rule-card">
                                 <div class="rule-number">Rule ${ruleNum}</div>
-                                <div class="rule-title">${highlightSearch(ruleData.title, query)}</div>
+                                <div class="rule-title">
+                                    <a href="#rule-${ruleNum}" onclick="showDetailedRule('${ruleNum}')" style="color: #0068c9; text-decoration: none;">${highlightSearch(ruleData.title, query)}</a>
+                                </div>
                                 <div class="rule-text">${highlightSearch(ruleData.text, query)}</div>
+                                <div style="margin-top: 1rem;">
+                                    <a href="#rule-${ruleNum}" onclick="showDetailedRule('${ruleNum}')" style="background: #0068c9; color: white; padding: 0.5rem 1rem; border-radius: 4px; text-decoration: none; font-size: 0.9rem;">View Full Rule Text</a>
+                                </div>
                             </div>
                         `;
                     });
